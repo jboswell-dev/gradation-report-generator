@@ -6,26 +6,26 @@
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 <style>
   body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
-  button { background: #0078d4; color: white; border: none; padding: 10px 20px; font-size: 15px; border-radius: 4px; cursor: pointer; }
+  button { background: #0078d4; color: white; border: none; padding: 10px 20px; font-size: 15px; border-radius: 4px; cursor: pointer; margin-right: 8px; }
   button:hover { background: #106ebe; }
-  #status { margin-top: 24px; padding: 16px; background: #f3f2f1; border-radius: 4px; }
+  button:disabled { background: #c8c6c4; cursor: not-allowed; }
+  #status { margin-top: 24px; padding: 16px; background: #f3f2f1; border-radius: 4px; white-space: pre-wrap; }
   .hidden { display: none; }
 </style>
 </head>
 <body>
 
 <h1>Gradation Report Generator</h1>
-<p>Stage 1 — sign-in test.</p>
+<p>Stage 2 — reading SharePoint lists.</p>
 
 <button id="signInBtn">Sign in</button>
 <button id="signOutBtn" class="hidden">Sign out</button>
+<button id="loadDataBtn" class="hidden">Load Data</button>
 
 <div id="status"></div>
 
 <script>
 // ---- CONFIG ----
-// These two values are NOT secrets — a browser SPA app registration
-// has no client secret. Safe to be public in this repo.
 const msalConfig = {
   auth: {
     clientId: "46835db0-e05c-4d34-b610-3a08562f0788",
@@ -33,29 +33,45 @@ const msalConfig = {
     redirectUri: "https://jboswell-dev.github.io/gradation-report-generator/"
   },
   cache: {
-    cacheLocation: "sessionStorage" // clears on tab close; simplest to reason about for now
+    cacheLocation: "sessionStorage"
   }
 };
+
+// Your site, from the Graph Explorer lookup earlier
+const SITE_ID = "kraemermm.sharepoint.com,14b8e4e5-569c-479d-b5eb-4a5ca4125cc0,650056b6-6652-4924-860f-ea63b28952ab";
+const PRODUCTS_LIST_NAME = "Gradation_Products";
+const LOG_LIST_NAME = "Gradation_Master_Log";
 
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 
 const statusDiv = document.getElementById("status");
 const signInBtn = document.getElementById("signInBtn");
 const signOutBtn = document.getElementById("signOutBtn");
+const loadDataBtn = document.getElementById("loadDataBtn");
+
+let currentAccount = null;
+
+function log(msg) {
+  statusDiv.textContent += msg + "\n";
+  console.log(msg);
+}
 
 function showSignedIn(account) {
-  statusDiv.innerHTML = `<strong>Signed in as:</strong><br>${account.name}<br>${account.username}`;
+  currentAccount = account;
+  statusDiv.textContent = `Signed in as: ${account.name} (${account.username})\n`;
   signInBtn.classList.add("hidden");
   signOutBtn.classList.remove("hidden");
+  loadDataBtn.classList.remove("hidden");
 }
 
 function showSignedOut() {
-  statusDiv.innerHTML = "Not signed in.";
+  currentAccount = null;
+  statusDiv.textContent = "Not signed in.";
   signInBtn.classList.remove("hidden");
   signOutBtn.classList.add("hidden");
+  loadDataBtn.classList.add("hidden");
 }
 
-// Handle the redirect back from Microsoft's sign-in page
 msalInstance.initialize().then(() => {
   return msalInstance.handleRedirectPromise();
 }).then((response) => {
@@ -70,18 +86,101 @@ msalInstance.initialize().then(() => {
     }
   }
 }).catch((error) => {
-  statusDiv.innerHTML = `<strong>Sign-in error:</strong><br>${error.message}`;
+  statusDiv.textContent = `Sign-in error: ${error.message}`;
   console.error(error);
 });
 
 signInBtn.addEventListener("click", () => {
-  msalInstance.loginRedirect({
-    scopes: ["Sites.Selected"]
-  });
+  msalInstance.loginRedirect({ scopes: ["Sites.Selected"] });
 });
 
 signOutBtn.addEventListener("click", () => {
   msalInstance.logoutRedirect();
+});
+
+// ---- Get an access token for Graph calls ----
+async function getGraphToken() {
+  const request = {
+    scopes: ["Sites.Selected"],
+    account: currentAccount
+  };
+  try {
+    const result = await msalInstance.acquireTokenSilent(request);
+    return result.accessToken;
+  } catch (error) {
+    // Silent acquisition failed (e.g. token expired past refresh) — fall back to redirect
+    console.warn("Silent token acquisition failed, redirecting...", error);
+    msalInstance.acquireTokenRedirect(request);
+  }
+}
+
+// ---- Find a list's ID by its display name ----
+async function getListId(token, listDisplayName) {
+  const url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists?$filter=displayName eq '${listDisplayName}'`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to find list '${listDisplayName}': ${response.status} ${await response.text()}`);
+  }
+  const data = await response.json();
+  if (!data.value || data.value.length === 0) {
+    throw new Error(`List '${listDisplayName}' not found on this site.`);
+  }
+  return data.value[0].id;
+}
+
+// ---- Get all items (with field values) from a list ----
+async function getListItems(token, listId) {
+  let items = [];
+  let url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${listId}/items?expand=fields&$top=200`;
+
+  while (url) {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to read list items: ${response.status} ${await response.text()}`);
+    }
+    const data = await response.json();
+    items = items.concat(data.value.map(item => item.fields));
+    url = data["@odata.nextLink"] || null; // pagination — SharePoint lists can be larger than one page
+  }
+  return items;
+}
+
+loadDataBtn.addEventListener("click", async () => {
+  loadDataBtn.disabled = true;
+  log("\nGetting access token...");
+  try {
+    const token = await getGraphToken();
+    if (!token) return; // redirect in progress
+
+    log("Finding lists...");
+    const productsListId = await getListId(token, PRODUCTS_LIST_NAME);
+    const logListId = await getListId(token, LOG_LIST_NAME);
+    log(`Found Products list (${productsListId})`);
+    log(`Found Log list (${logListId})`);
+
+    log("Reading list items...");
+    const products = await getListItems(token, productsListId);
+    const logItems = await getListItems(token, logListId);
+
+    log(`Products: ${products.length} rows`);
+    log(`Log: ${logItems.length} rows`);
+    log("\nFull data logged to browser console (F12) for inspection.");
+
+    console.log("PRODUCTS:", products);
+    console.log("LOG:", logItems);
+
+    window.__gradationProducts = products;
+    window.__gradationLog = logItems;
+  } catch (error) {
+    log(`\nError: ${error.message}`);
+    console.error(error);
+  } finally {
+    loadDataBtn.disabled = false;
+  }
 });
 </script>
 
