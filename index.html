@@ -151,6 +151,12 @@
     border-left:1px dotted var(--line-strong);
     padding-left:16px;
   }
+  .field.full-width{
+    flex-basis:100%;
+    border-left:none;
+    padding-left:0;
+    margin-top:2px;
+  }
   .field label{
     font-family:'IBM Plex Mono',monospace;
     font-size:10px;
@@ -268,7 +274,7 @@
   #summaryPanel{
     max-height:320px;
   }
-  table{border-collapse:collapse;width:100%;font-size:10.5px;}
+  table{border-collapse:collapse;width:auto;font-size:10.5px;}
   thead th{
     position:sticky;top:0;background:var(--panel-2);
     font-family:'IBM Plex Mono',monospace;
@@ -363,6 +369,10 @@
         <div class="field">
           <label>Product</label>
           <select id="productSelect"></select>
+        </div>
+        <div class="field full-width" id="customProductGroup" style="display:none;">
+          <label>Custom products <span style="text-transform:none;">(select one or more to combine)</span></label>
+          <div class="checkgroup" id="customProductCheckboxes" style="flex-wrap:wrap;"></div>
         </div>
         <div class="field">
           <label>Sample type</label>
@@ -485,27 +495,27 @@
     {key:"Coarse_9_16in",  mm:14.3,   label:'9/16"'},
     {key:"Coarse_1_2in",   mm:12.5,   label:'1/2"'},
     {key:"Coarse_3_8in",   mm:9.5,    label:'3/8"'},
-    {key:"Coarse_No4",     mm:4.75,   label:"No. 4"},
-    {key:"Coarse_No8",     mm:2.36,   label:"No. 8"},
-    {key:"Coarse_No10",    mm:2.00,   label:"No. 10"},
-    {key:"Coarse_No30",    mm:0.60,   label:"No. 30"},
-    {key:"Coarse_No40",    mm:0.425,  label:"No. 40"},
-    {key:"Coarse_No60",    mm:0.25,   label:"No. 60"},
-    {key:"Coarse_No200",   mm:0.075,  label:"No. 200"},
+    {key:"Coarse_No4",     mm:4.75,   label:"#4"},
+    {key:"Coarse_No8",     mm:2.36,   label:"#8"},
+    {key:"Coarse_No10",    mm:2.00,   label:"#10"},
+    {key:"Coarse_No30",    mm:0.60,   label:"#30"},
+    {key:"Coarse_No40",    mm:0.425,  label:"#40"},
+    {key:"Coarse_No60",    mm:0.25,   label:"#60"},
+    {key:"Coarse_No200",   mm:0.075,  label:"#200"},
     {key:"Fine_3_8in",     mm:9.5,    label:'3/8"'},
-    {key:"Fine_No4",       mm:4.75,   label:"No. 4"},
-    {key:"Fine_No8",       mm:2.36,   label:"No. 8"},
-    {key:"Fine_No10",      mm:2.00,   label:"No. 10"},
-    {key:"Fine_No16",      mm:1.18,   label:"No. 16"},
-    {key:"Fine_No20",      mm:0.85,   label:"No. 20"},
-    {key:"Fine_No30",      mm:0.60,   label:"No. 30"},
-    {key:"Fine_No40",      mm:0.425,  label:"No. 40"},
-    {key:"Fine_No50",      mm:0.30,   label:"No. 50"},
-    {key:"Fine_No60",      mm:0.25,   label:"No. 60"},
-    {key:"Fine_No80",      mm:0.18,   label:"No. 80"},
-    {key:"Fine_No100",     mm:0.15,   label:"No. 100"},
-    {key:"Fine_No200",     mm:0.075,  label:"No. 200"},
-    {key:"Fine_No325",     mm:0.045,  label:"No. 325"}
+    {key:"Fine_No4",       mm:4.75,   label:"#4"},
+    {key:"Fine_No8",       mm:2.36,   label:"#8"},
+    {key:"Fine_No10",      mm:2.00,   label:"#10"},
+    {key:"Fine_No16",      mm:1.18,   label:"#16"},
+    {key:"Fine_No20",      mm:0.85,   label:"#20"},
+    {key:"Fine_No30",      mm:0.60,   label:"#30"},
+    {key:"Fine_No40",      mm:0.425,  label:"#40"},
+    {key:"Fine_No50",      mm:0.30,   label:"#50"},
+    {key:"Fine_No60",      mm:0.25,   label:"#60"},
+    {key:"Fine_No80",      mm:0.18,   label:"#80"},
+    {key:"Fine_No100",     mm:0.15,   label:"#100"},
+    {key:"Fine_No200",     mm:0.075,  label:"#200"},
+    {key:"Fine_No325",     mm:0.045,  label:"#325"}
   ];
   const SIEVE_BY_KEY = {};
   SIEVE_DEFS.forEach(s => SIEVE_BY_KEY[s.key] = s);
@@ -525,7 +535,10 @@
   let quarries = [];
   let productsForQuarry = [];
   let selectedQuarry = null;
-  let selectedProduct = null;      // Title string
+  let selectedProduct = null;      // Title string (single-product mode)
+  let productMode = "single";      // "single" | "custom"
+  let customProductIndex = [];     // [{Quarry, Product}] distinct custom products, from IsCustomProduct=true rows
+  let selectedCustomProducts = new Set(); // Product names selected in custom mode
   let selectedSampleTypes = {Production:true, Loadout:false, Other:false};
   let displayStart = null;         // Date
   let displayEnd = null;           // Date
@@ -665,6 +678,27 @@
     return items.map(i => i.fields);
   }
 
+  // Custom products are one-off entries in Gradation_Master_Log (IsCustomProduct = true) and have no
+  // corresponding row in Gradation_Products. To find them we need to look across the WHOLE log history,
+  // not just the currently-loaded date window — but we only pull 3 narrow fields (not the 35 sieve
+  // columns) so this stays cheap even as the log grows.
+  async function loadCustomProductIndex(){
+    const listId = await getListId(LOG_LIST_NAME);
+    const url = "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId +
+      "/items?expand=fields(select=Quarry,Product,IsCustomProduct)&$top=500";
+    const items = await graphGetAllPages(url);
+    const seen = new Map();
+    items.forEach(i => {
+      const f = i.fields || {};
+      const isCustom = f.IsCustomProduct === true || f.IsCustomProduct === 1 || f.IsCustomProduct === "1" || f.IsCustomProduct === "Yes";
+      if (isCustom && f.Quarry && f.Product){
+        const key = f.Quarry + "||" + f.Product;
+        if (!seen.has(key)) seen.set(key, {Quarry: f.Quarry, Product: f.Product});
+      }
+    });
+    return Array.from(seen.values());
+  }
+
   async function fetchTestsInRange(startDate, endDate){
     const listId = await getListId(LOG_LIST_NAME);
     const filter = encodeURIComponent(
@@ -747,6 +781,13 @@
       return;
     }
 
+    try {
+      customProductIndex = await loadCustomProductIndex();
+    } catch(e){
+      console.error("Could not load custom product index: " + e.message);
+      customProductIndex = []; // non-fatal — Custom option just shows none available
+    }
+
     quarries = Array.from(new Set(products.map(p => p.Quarry).filter(Boolean))).sort();
     populateSelect($("quarrySelect"), quarries);
     selectedQuarry = quarries[0] || null;
@@ -782,7 +823,45 @@
     if (!productsForQuarry.length) productsForQuarry = products.filter(p => p.Quarry === selectedQuarry);
     const names = productsForQuarry.map(p => p.Title).filter(Boolean);
     populateSelect($("productSelect"), names);
+    const customOpt = document.createElement("option");
+    customOpt.value = "__CUSTOM__";
+    customOpt.textContent = "Custom…";
+    $("productSelect").appendChild(customOpt);
+
+    productMode = "single";
     selectedProduct = names[0] || null;
+    selectedCustomProducts = new Set();
+    $("customProductGroup").style.display = "none";
+  }
+
+  function renderCustomProductOptions(){
+    const box = $("customProductCheckboxes");
+    box.innerHTML = "";
+    const options = customProductIndex.filter(c => c.Quarry === selectedQuarry);
+    if (!options.length){
+      box.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);">No custom products found for this quarry.</span>';
+      return;
+    }
+    options.forEach(c => {
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = selectedCustomProducts.has(c.Product);
+      cb.addEventListener("change", () => {
+        if (cb.checked) selectedCustomProducts.add(c.Product); else selectedCustomProducts.delete(c.Product);
+        resetIncludedToLastN();
+        render();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(c.Product));
+      box.appendChild(label);
+    });
+  }
+
+  function getProductDisplayName(){
+    if (productMode === "custom"){
+      return selectedCustomProducts.size ? Array.from(selectedCustomProducts).join(" + ") : "Custom (none selected)";
+    }
+    return selectedProduct;
   }
 
   function renderSampleTypeGroup(){
@@ -811,7 +890,17 @@
       render();
     });
     $("productSelect").addEventListener("change", e => {
-      selectedProduct = e.target.value;
+      if (e.target.value === "__CUSTOM__"){
+        productMode = "custom";
+        selectedProduct = null;
+        selectedCustomProducts = new Set();
+        renderCustomProductOptions();
+        $("customProductGroup").style.display = "block";
+      } else {
+        productMode = "single";
+        selectedProduct = e.target.value;
+        $("customProductGroup").style.display = "none";
+      }
       resetIncludedToLastN();
       render();
     });
@@ -848,10 +937,24 @@
     });
   }
 
+  // Custom products have no Gradation_Products spec row, so "which sieves apply" is derived from
+  // whichever sieve columns actually have values in the matching test rows themselves.
+  function getSievesFromTests(tests){
+    return SIEVE_DEFS.filter(s => tests.some(t => {
+      const v = t[s.key + "_Pct"];
+      return v !== undefined && v !== null && String(v).trim() !== "";
+    }));
+  }
+
   function testsInDateRange(start, end){
     const s = dayNum(start), e = dayNum(end);
     return allTests.filter(t => {
-      if (t.Quarry !== selectedQuarry || t.Product !== selectedProduct) return false;
+      if (t.Quarry !== selectedQuarry) return false;
+      if (productMode === "custom"){
+        if (!selectedCustomProducts.has(t.Product)) return false;
+      } else {
+        if (t.Product !== selectedProduct) return false;
+      }
       if (!selectedSampleTypes[t.SampleType]) return false;
       if (!t.SampleDate) return false;
       const d = dayNumFromISODateUTC(t.SampleDate);
@@ -914,9 +1017,9 @@
      ================================================================ */
   function render(){
     const productFields = getCurrentProductFields();
-    const sieves = getSievesForProduct(productFields);
     const rangeTestsRecentFirst = testsInDateRange(displayStart, displayEnd).sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
     const rangeTests = rangeTestsRecentFirst.slice().sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
+    const sieves = productMode === "custom" ? getSievesFromTests(rangeTests) : getSievesForProduct(productFields);
     const shownTests = (lastN > 0 ? rangeTestsRecentFirst.slice(0, lastN) : rangeTestsRecentFirst)
       .slice().sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
     const dayAverages = computeDayAverages(rangeTests, sieves);
@@ -924,7 +1027,7 @@
     const specs = {};
     sieves.forEach(s => specs[s.key] = productFields ? parseSpec(productFields[s.key]) : null);
 
-    $("chartTitle").textContent = (selectedProduct || "—") + " Particle Size Distribution " +
+    $("chartTitle").textContent = (getProductDisplayName() || "—") + " Particle Size Distribution " +
       fmtDate(displayStart) + " – " + fmtDate(displayEnd);
 
     renderChart(sieves, stats, specs);
@@ -942,8 +1045,8 @@
     if (!sieves.length){ emptyMsg.style.display = "block"; return; }
     emptyMsg.style.display = "none";
 
-    const W = 1000, H = 620;
-    const marginLeft = 46, marginRight = 20, marginTop = 54, marginBottom = 36;
+    const W = 1000, H = 500;
+    const marginLeft = 54, marginRight = 24, marginTop = 66, marginBottom = 44;
     const plotW = W - marginLeft - marginRight;
     const plotH = H - marginTop - marginBottom;
 
@@ -951,7 +1054,7 @@
     const minMm = Math.min.apply(null, mms), maxMm = Math.max.apply(null, mms);
     const logMinRaw = Math.log10(minMm), logMaxRaw = Math.log10(maxMm);
     const logRange = (logMaxRaw - logMinRaw) || 1;
-    const logPad = logRange * 0.12;
+    const logPad = logRange * 0.06;
     const logMin = logMinRaw - logPad;
     const logMax = logMaxRaw + logPad;
     const domainMinMm = Math.pow(10, logMin), domainMaxMm = Math.pow(10, logMax);
@@ -969,9 +1072,9 @@
     for (let p = 0; p <= 100; p += 20){
       const y = yOf(p);
       svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#c9cccd" stroke-width="1"/>';
-      svg += '<text x="' + (marginLeft-8) + '" y="' + (y+3) + '" font-size="10" fill="#454b4e" text-anchor="end">' + p + '</text>';
+      svg += '<text x="' + (marginLeft-9) + '" y="' + (y+4) + '" font-size="12" fill="#454b4e" text-anchor="end">' + p + '</text>';
     }
-    svg += '<text x="14" y="' + (marginTop + plotH/2) + '" font-size="10" fill="#454b4e" text-anchor="middle" transform="rotate(-90 14 ' + (marginTop+plotH/2) + ')">% Passing</text>';
+    svg += '<text x="16" y="' + (marginTop + plotH/2) + '" font-size="12" fill="#454b4e" text-anchor="middle" transform="rotate(-90 16 ' + (marginTop+plotH/2) + ')">% Passing</text>';
 
     // log-scale mm axis: standard semi-log gridlines (1,2,3...9 per decade), numeric labels only at powers of ten.
     // The plotted domain itself is padded (domainMinMm..domainMaxMm) so these gridlines land inside the plot area.
@@ -987,16 +1090,26 @@
           (isMajor ? '#bcc0c1' : '#dcdfe0') + '" stroke-width="' + (isMajor ? 1 : 0.75) + '"/>';
         if (isMajor){
           const label = v >= 1 ? (Math.round(v*100)/100).toString() : v.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
-          svg += '<text x="' + x + '" y="' + (marginTop+plotH+13) + '" font-size="8.5" fill="#6b7175" text-anchor="middle">' + label + '</text>';
+          svg += '<text x="' + x + '" y="' + (marginTop+plotH+16) + '" font-size="10.5" fill="#6b7175" text-anchor="middle">' + label + '</text>';
         }
       }
     }
-    svg += '<text x="' + (marginLeft+plotW/2) + '" y="' + (H-4) + '" font-size="9.5" fill="#454b4e" text-anchor="middle">Sieve Size (mm)</text>';
+    svg += '<text x="' + (marginLeft+plotW/2) + '" y="' + (H-4) + '" font-size="11.5" fill="#454b4e" text-anchor="middle">Sieve Size (mm)</text>';
 
-    // sieve markers used by this product: label at top + a short dash underneath (no full-height line)
-    sieves.forEach(s => {
+    // sieve markers used by this product: label at top + a short dash underneath (no full-height line).
+    // If two adjacent labels would overlap, the leftmost one is raised so the text stays legible.
+    const sieveFontSize = 12;
+    const charW = sieveFontSize * 0.62;
+    const raised = new Array(sieves.length).fill(false);
+    for (let i = 0; i < sieves.length - 1; i++){
+      const xi = xOf(sieves[i].mm), xj = xOf(sieves[i+1].mm);
+      const wi = sieves[i].label.length * charW, wj = sieves[i+1].label.length * charW;
+      if ((xj - xi) < (wi/2 + wj/2 + 5)) raised[i] = true;
+    }
+    sieves.forEach((s, i) => {
       const x = xOf(s.mm);
-      svg += '<text x="' + x + '" y="' + (marginTop-8) + '" font-size="9.5" fill="#3a3f42" text-anchor="middle">' + escapeXml(s.label) + '</text>';
+      const labelY = raised[i] ? (marginTop - 8 - 16) : (marginTop - 8);
+      svg += '<text x="' + x + '" y="' + labelY + '" font-size="' + sieveFontSize + '" fill="#3a3f42" text-anchor="middle">' + escapeXml(s.label) + '</text>';
       svg += '<line x1="' + x + '" y1="' + (marginTop-3) + '" x2="' + x + '" y2="' + (marginTop+6) + '" stroke="#3a3f42" stroke-width="2"/>';
     });
 
@@ -1148,7 +1261,7 @@
     trAvg.className = "avg-row";
     const tdLabel = document.createElement("td");
     tdLabel.className = "left";
-    tdLabel.textContent = "Average*";
+    tdLabel.textContent = "Average";
     trAvg.appendChild(tdLabel);
     sieves.forEach(s => {
       const td = document.createElement("td");
@@ -1164,7 +1277,7 @@
     const tdNote = document.createElement("td");
     tdNote.className = "left";
     tdNote.colSpan = sieves.length + 1;
-    tdNote.textContent = "*Average is over entire date range.";
+    tdNote.textContent = "Average is over entire date range.";
     trNote.appendChild(tdNote);
     tbody.appendChild(trNote);
   }
