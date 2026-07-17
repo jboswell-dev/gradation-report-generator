@@ -13,15 +13,15 @@
     --panel:#f5f6f6;
     --panel-2:#eceeee;
     --ink:#1c1f21;
-    --ink-soft:#565d61;
-    --ink-faint:#8a9094;
+    --ink-soft:#454b4e;
+    --ink-faint:#6b7175;
     --rust:#b23a2f;
     --rust-dark:#8c2c23;
     --slate:#3d5a73;
     --slate-dark:#2c4256;
     --olive:#5c6e4f;
-    --line:#cdd1d2;
-    --line-strong:#a4aaac;
+    --line:#b7bbbd;
+    --line-strong:#8b9092;
     --amber:#c07d1e;
     --radius:3px;
     --shadow:0 1px 2px rgba(20,22,23,0.08);
@@ -280,7 +280,7 @@
     white-space:nowrap;
   }
   thead th.left, tbody td.left{text-align:left;}
-  thead th.center, tbody td.center{text-align:center;}
+  thead th.center, tbody td.center{text-align:center;width:44px;min-width:44px;}
   tbody td{
     padding:3px 5px;
     border-bottom:1px solid var(--line);
@@ -295,6 +295,11 @@
     font-weight:600;
   }
   tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--rust-dark);}
+  tbody tr.footnote-row td{
+    border-bottom:none;padding-top:3px;padding-bottom:2px;
+    font-family:'IBM Plex Sans',sans-serif;font-style:normal;
+    font-size:10px;color:var(--ink-faint);text-align:left;white-space:normal;
+  }
   .notes-cell{
     max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     text-align:left;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-soft);
@@ -937,14 +942,19 @@
     if (!sieves.length){ emptyMsg.style.display = "block"; return; }
     emptyMsg.style.display = "none";
 
-    const W = 1000, H = 420;
+    const W = 1000, H = 620;
     const marginLeft = 46, marginRight = 20, marginTop = 54, marginBottom = 36;
     const plotW = W - marginLeft - marginRight;
     const plotH = H - marginTop - marginBottom;
 
     const mms = sieves.map(s => s.mm);
     const minMm = Math.min.apply(null, mms), maxMm = Math.max.apply(null, mms);
-    const logMin = Math.log10(minMm), logMax = Math.log10(maxMm);
+    const logMinRaw = Math.log10(minMm), logMaxRaw = Math.log10(maxMm);
+    const logRange = (logMaxRaw - logMinRaw) || 1;
+    const logPad = logRange * 0.12;
+    const logMin = logMinRaw - logPad;
+    const logMax = logMaxRaw + logPad;
+    const domainMinMm = Math.pow(10, logMin), domainMaxMm = Math.pow(10, logMax);
 
     function xOf(mm){
       if (logMax === logMin) return marginLeft + plotW/2;
@@ -958,29 +968,30 @@
     // horizontal gridlines + y labels
     for (let p = 0; p <= 100; p += 20){
       const y = yOf(p);
-      svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#dde0e1" stroke-width="1"/>';
-      svg += '<text x="' + (marginLeft-8) + '" y="' + (y+3) + '" font-size="10" fill="#565d61" text-anchor="end">' + p + '</text>';
+      svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#c9cccd" stroke-width="1"/>';
+      svg += '<text x="' + (marginLeft-8) + '" y="' + (y+3) + '" font-size="10" fill="#454b4e" text-anchor="end">' + p + '</text>';
     }
-    svg += '<text x="14" y="' + (marginTop + plotH/2) + '" font-size="10" fill="#565d61" text-anchor="middle" transform="rotate(-90 14 ' + (marginTop+plotH/2) + ')">% Passing</text>';
+    svg += '<text x="14" y="' + (marginTop + plotH/2) + '" font-size="10" fill="#454b4e" text-anchor="middle" transform="rotate(-90 14 ' + (marginTop+plotH/2) + ')">% Passing</text>';
 
-    // log-scale mm axis: standard semi-log gridlines (1,2,3...9 per decade), numeric labels only at powers of ten
-    const loE = Math.floor(Math.log10(minMm)) - 1;
-    const hiE = Math.ceil(Math.log10(maxMm)) + 1;
+    // log-scale mm axis: standard semi-log gridlines (1,2,3...9 per decade), numeric labels only at powers of ten.
+    // The plotted domain itself is padded (domainMinMm..domainMaxMm) so these gridlines land inside the plot area.
+    const loE = Math.floor(Math.log10(domainMinMm));
+    const hiE = Math.ceil(Math.log10(domainMaxMm));
     for (let e = loE; e <= hiE; e++){
       for (let m = 1; m <= 9; m++){
         const v = m * Math.pow(10, e);
-        if (v < minMm*0.92 || v > maxMm*1.08) continue;
+        if (v < domainMinMm || v > domainMaxMm) continue;
         const x = xOf(v);
         const isMajor = (m === 1);
         svg += '<line x1="' + x + '" y1="' + marginTop + '" x2="' + x + '" y2="' + (marginTop+plotH) + '" stroke="' +
-          (isMajor ? '#d7dadb' : '#eef0f0') + '" stroke-width="' + (isMajor ? 1 : 0.75) + '"/>';
+          (isMajor ? '#bcc0c1' : '#dcdfe0') + '" stroke-width="' + (isMajor ? 1 : 0.75) + '"/>';
         if (isMajor){
           const label = v >= 1 ? (Math.round(v*100)/100).toString() : v.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
-          svg += '<text x="' + x + '" y="' + (marginTop+plotH+13) + '" font-size="8.5" fill="#8a9094" text-anchor="middle">' + label + '</text>';
+          svg += '<text x="' + x + '" y="' + (marginTop+plotH+13) + '" font-size="8.5" fill="#6b7175" text-anchor="middle">' + label + '</text>';
         }
       }
     }
-    svg += '<text x="' + (marginLeft+plotW/2) + '" y="' + (H-4) + '" font-size="9.5" fill="#565d61" text-anchor="middle">Sieve Size (mm)</text>';
+    svg += '<text x="' + (marginLeft+plotW/2) + '" y="' + (H-4) + '" font-size="9.5" fill="#454b4e" text-anchor="middle">Sieve Size (mm)</text>';
 
     // sieve markers used by this product: label at top + a short dash underneath (no full-height line)
     sieves.forEach(s => {
@@ -1000,7 +1011,7 @@
           }
         });
         if (pts.length > 1){
-          svg += '<polyline points="' + pts.map(p=>p.join(",")).join(" ") + '" fill="none" stroke="#8a9094" stroke-width="1.5" stroke-dasharray="5,4"/>';
+          svg += '<polyline points="' + pts.map(p=>p.join(",")).join(" ") + '" fill="none" stroke="#6b7175" stroke-width="1.5" stroke-dasharray="5,4"/>';
         }
       });
     }
@@ -1137,7 +1148,7 @@
     trAvg.className = "avg-row";
     const tdLabel = document.createElement("td");
     tdLabel.className = "left";
-    tdLabel.textContent = "Average (full range)";
+    tdLabel.textContent = "Average*";
     trAvg.appendChild(tdLabel);
     sieves.forEach(s => {
       const td = document.createElement("td");
@@ -1147,6 +1158,15 @@
       trAvg.appendChild(td);
     });
     tbody.appendChild(trAvg);
+
+    const trNote = document.createElement("tr");
+    trNote.className = "footnote-row";
+    const tdNote = document.createElement("td");
+    tdNote.className = "left";
+    tdNote.colSpan = sieves.length + 1;
+    tdNote.textContent = "*Average is over entire date range.";
+    trNote.appendChild(tdNote);
+    tbody.appendChild(trNote);
   }
 
   /* ================================================================
