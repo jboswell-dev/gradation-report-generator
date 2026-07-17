@@ -2,187 +2,1105 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gradation Report Generator</title>
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradation Report Generator — Kraemer Materials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
-  button { background: #0078d4; color: white; border: none; padding: 10px 20px; font-size: 15px; border-radius: 4px; cursor: pointer; margin-right: 8px; }
-  button:hover { background: #106ebe; }
-  button:disabled { background: #c8c6c4; cursor: not-allowed; }
-  #status { margin-top: 24px; padding: 16px; background: #f3f2f1; border-radius: 4px; white-space: pre-wrap; }
-  .hidden { display: none; }
+  :root{
+    --bg:#e6e9ea;
+    --panel:#f5f6f6;
+    --panel-2:#eceeee;
+    --ink:#1c1f21;
+    --ink-soft:#565d61;
+    --ink-faint:#8a9094;
+    --rust:#b23a2f;
+    --rust-dark:#8c2c23;
+    --slate:#3d5a73;
+    --slate-dark:#2c4256;
+    --olive:#5c6e4f;
+    --line:#cdd1d2;
+    --line-strong:#a4aaac;
+    --amber:#c07d1e;
+    --radius:3px;
+    --shadow:0 1px 2px rgba(20,22,23,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+  .app{
+    max-width:1400px;
+    margin:0 auto;
+    padding:16px 20px 40px;
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:12px;
+    margin-bottom:14px;
+    border-bottom:2px solid var(--ink);
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .brand h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:26px;
+    margin:0;
+    color:var(--ink);
+  }
+  .brand .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+    letter-spacing:0.03em;
+  }
+  .authbox{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:12px;
+  }
+  .authbox .who{
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--ink-soft);
+  }
+  button{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    border-radius:var(--radius);
+    border:1px solid var(--line-strong);
+    background:var(--panel);
+    color:var(--ink);
+    padding:7px 14px;
+    cursor:pointer;
+    transition:background .12s ease, border-color .12s ease;
+  }
+  button:hover:not(:disabled){background:#fff;border-color:var(--ink-soft);}
+  button:disabled{opacity:0.45;cursor:not-allowed;}
+  button.primary{background:var(--rust);border-color:var(--rust-dark);color:#fff;}
+  button.primary:hover:not(:disabled){background:var(--rust-dark);}
+  button.ghost{background:transparent;border-color:var(--line);}
+
+  /* ---------- status / error banners ---------- */
+  #errorBanner{
+    display:none;
+    background:#fbeceb;
+    border:1px solid var(--rust);
+    color:var(--rust-dark);
+    padding:9px 12px;
+    border-radius:var(--radius);
+    font-size:12px;
+    margin-bottom:12px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  #signedOutNotice{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  #signedOutNotice h2{
+    font-family:'Barlow Condensed',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    font-size:22px;
+    color:var(--ink);
+  }
+
+  /* ---------- control panel ---------- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .controls-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:0;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:0 16px 8px 0;
+    position:relative;
+  }
+  .field + .field{
+    border-left:1px dotted var(--line-strong);
+    padding-left:16px;
+  }
+  .field label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--ink-faint);
+  }
+  select, input[type="date"], input[type="number"], textarea{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    background:#fff;
+    padding:6px 8px;
+  }
+  select{min-width:150px;}
+  input[type="date"]{min-width:130px;}
+  input[type="number"]{width:64px;}
+  .daterange{display:flex;align-items:center;gap:6px;}
+  .daterange span{color:var(--ink-faint);font-size:11px;}
+  .checkgroup{display:flex;gap:10px;align-items:center;padding-top:2px;}
+  .checkgroup label{
+    display:flex;align-items:center;gap:5px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12px;text-transform:none;letter-spacing:0;color:var(--ink);
+  }
+  .checkgroup input{accent-color:var(--slate);}
+  .toggles{display:flex;gap:14px;}
+  .toggles label{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--ink);cursor:pointer;
+  }
+  .toggles input{accent-color:var(--rust);}
+  .swatch{width:14px;height:3px;display:inline-block;border-radius:1px;}
+  .sw-avg{background:var(--rust);}
+  .sw-minmax{background:#000;}
+  .sw-spec{background:var(--ink-faint);border-top:2px dashed var(--ink-faint);height:0;}
+
+  .status-line{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dotted var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .status-line .loading{color:var(--slate);}
+
+  /* ---------- chart ---------- */
+  .chart-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 16px 8px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+    position:relative;
+  }
+  .panel-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:15px;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .chart-wrap{position:relative;width:100%;}
+  .chart-wrap svg{width:100%;height:auto;display:block;}
+  .chart-empty{
+    text-align:center;color:var(--ink-faint);padding:60px 0;font-size:12px;
+  }
+  .chart-loading-overlay{
+    position:absolute;inset:0;background:rgba(245,246,246,0.75);
+    display:none;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate-dark);
+  }
+
+  /* ---------- tables ---------- */
+  .tables-row{
+    display:grid;
+    grid-template-columns:1.5fr 1fr;
+    gap:14px;
+    margin-bottom:14px;
+    align-items:start;
+  }
+  @media (max-width:980px){
+    .tables-row{grid-template-columns:1fr;}
+  }
+  .table-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    box-shadow:var(--shadow);
+    overflow:auto;
+    max-height:420px;
+  }
+  table{border-collapse:collapse;width:100%;font-size:11.5px;}
+  thead th{
+    position:sticky;top:0;background:var(--panel-2);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.04em;
+    color:var(--ink-soft);
+    text-align:right;
+    padding:5px 7px;
+    border-bottom:1px solid var(--line-strong);
+    white-space:nowrap;
+  }
+  thead th.left, tbody td.left{text-align:left;}
+  tbody td{
+    padding:4px 7px;
+    border-bottom:1px solid var(--line);
+    text-align:right;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  tbody tr:hover{background:#fbfbfb;}
+  tbody tr.avg-row{
+    background:#f2e7e5;
+    font-weight:600;
+  }
+  tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--rust-dark);}
+  .notes-cell{
+    max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    text-align:left;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-soft);
+  }
+  td.spec-out{color:var(--rust);font-weight:600;}
+  .empty-row td{text-align:center;color:var(--ink-faint);font-style:normal;padding:16px;}
+
+  /* ---------- comments / report ---------- */
+  .bottom-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  @media (max-width:800px){.bottom-row{grid-template-columns:1fr;}}
+  .comments-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;box-shadow:var(--shadow);
+  }
+  textarea{width:100%;min-height:64px;resize:vertical;font-family:'IBM Plex Sans',sans-serif;}
+  .generate-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:6px;align-items:flex-end;
+    min-width:220px;
+  }
+  .generate-panel .hint{font-size:10.5px;color:var(--ink-faint);text-align:right;}
 </style>
 </head>
 <body>
+<div class="app">
 
-<h1>Gradation Report Generator</h1>
-<p>Stage 2 — reading SharePoint lists.</p>
+  <div class="topbar">
+    <div class="brand">
+      <h1>Gradation Report Generator</h1>
+      <span class="sub">KRAEMER MATERIALS · TECHNICAL SERVICES</span>
+    </div>
+    <div class="authbox" id="authbox">
+      <span class="who" id="whoami"></span>
+      <button id="signInBtn">Sign in</button>
+      <button id="signOutBtn" class="ghost" style="display:none;">Sign out</button>
+    </div>
+  </div>
 
-<button id="signInBtn">Sign in</button>
-<button id="signOutBtn" class="hidden">Sign out</button>
-<button id="loadDataBtn" class="hidden">Load Data</button>
+  <div id="errorBanner"></div>
 
-<div id="status"></div>
+  <div id="signedOutNotice">
+    <h2>Sign in to load gradation data</h2>
+    <p>Use your Kraemer Materials Microsoft 365 account.</p>
+  </div>
 
+  <div id="appBody" style="display:none;">
+
+    <!-- ================= CONTROL PANEL ================= -->
+    <div class="panel">
+      <div class="controls-row">
+        <div class="field">
+          <label>Quarry</label>
+          <select id="quarrySelect"></select>
+        </div>
+        <div class="field">
+          <label>Product</label>
+          <select id="productSelect"></select>
+        </div>
+        <div class="field">
+          <label>Sample type</label>
+          <div class="checkgroup" id="sampleTypeGroup"></div>
+        </div>
+        <div class="field">
+          <label>Date range</label>
+          <div class="daterange">
+            <input type="date" id="startDate">
+            <span>&ndash;</span>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+        <div class="field">
+          <label>Show last N tests <span style="text-transform:none;">(0 = all)</span></label>
+          <input type="number" id="lastNInput" min="0" step="1" value="20">
+        </div>
+        <div class="field">
+          <label>Chart overlays</label>
+          <div class="toggles">
+            <label><span class="swatch sw-spec"></span> Spec range <input type="checkbox" id="toggleSpec" checked></label>
+            <label><span class="swatch sw-minmax"></span> Min / Max <input type="checkbox" id="toggleMinMax"></label>
+          </div>
+        </div>
+      </div>
+      <div class="status-line">
+        <span id="statusText">—</span>
+        <span id="loadingText" class="loading" style="display:none;">Loading data from SharePoint…</span>
+      </div>
+    </div>
+
+    <!-- ================= CHART ================= -->
+    <div class="chart-panel">
+      <h2 class="panel-title" id="chartTitle">Particle Size Distribution</h2>
+      <div class="chart-wrap" id="chartWrap">
+        <div class="chart-empty">No data for this selection.</div>
+        <div class="chart-loading-overlay" id="chartLoadingOverlay">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ================= TABLES ================= -->
+    <div class="tables-row">
+      <div class="table-panel" id="testPickerPanel">
+        <h2 class="panel-title">Test History</h2>
+        <table id="testPickerTable">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="table-panel" id="summaryPanel">
+        <h2 class="panel-title">Report Summary</h2>
+        <table id="summaryTable">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= COMMENTS / GENERATE ================= -->
+    <div class="bottom-row">
+      <div class="comments-panel">
+        <label for="reportComments" style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-faint);">Report comments</label>
+        <textarea id="reportComments" placeholder="Notes to include on the generated report…" style="margin-top:6px;"></textarea>
+      </div>
+      <div class="generate-panel">
+        <button class="primary" id="generateBtn" disabled title="Report generation is not built yet">Generate Report</button>
+        <span class="hint">Report generation is coming in a later stage.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 <script>
-// ---- CONFIG ----
-const msalConfig = {
-  auth: {
-    clientId: "46835db0-e05c-4d34-b610-3a08562f0788",
-    authority: "https://login.microsoftonline.com/6e80e38c-9c64-427b-a5c3-9d42a7077b22",
-    redirectUri: "https://jboswell-dev.github.io/gradation-report-generator/"
-  },
-  cache: {
-    cacheLocation: "sessionStorage"
-  }
-};
+(function(){
+  "use strict";
 
-// Your site, from the Graph Explorer lookup earlier
-const SITE_ID = "kraemermm.sharepoint.com,14b8e4e5-569c-479d-b5eb-4a5ca4125cc0,650056b6-6652-4924-860f-ea63b28952ab";
-const PRODUCTS_LIST_NAME = "Gradation_Products";
-const LOG_LIST_NAME = "Gradation_Master_Log";
-
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-const statusDiv = document.getElementById("status");
-const signInBtn = document.getElementById("signInBtn");
-const signOutBtn = document.getElementById("signOutBtn");
-const loadDataBtn = document.getElementById("loadDataBtn");
-
-let currentAccount = null;
-
-function log(msg) {
-  statusDiv.textContent += msg + "\n";
-  console.log(msg);
-}
-
-function showSignedIn(account) {
-  currentAccount = account;
-  statusDiv.textContent = `Signed in as: ${account.name} (${account.username})\n`;
-  signInBtn.classList.add("hidden");
-  signOutBtn.classList.remove("hidden");
-  loadDataBtn.classList.remove("hidden");
-}
-
-function showSignedOut() {
-  currentAccount = null;
-  statusDiv.textContent = "Not signed in.";
-  signInBtn.classList.remove("hidden");
-  signOutBtn.classList.add("hidden");
-  loadDataBtn.classList.add("hidden");
-}
-
-msalInstance.initialize().then(() => {
-  return msalInstance.handleRedirectPromise();
-}).then((response) => {
-  if (response && response.account) {
-    showSignedIn(response.account);
-  } else {
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      showSignedIn(accounts[0]);
-    } else {
-      showSignedOut();
+  /* ================================================================
+     CONFIG
+     ================================================================ */
+  const msalConfig = {
+    auth: {
+      clientId: "46835db0-e05c-4d34-b610-3a08562f0788",
+      authority: "https://login.microsoftonline.com/6e80e38c-9c64-427b-a5c3-9d42a7077b22",
+      redirectUri: window.location.origin + window.location.pathname
+    },
+    cache: {
+      cacheLocation: "sessionStorage",
+      storeAuthStateInCookie: false
     }
-  }
-}).catch((error) => {
-  statusDiv.textContent = `Sign-in error: ${error.message}`;
-  console.error(error);
-});
-
-signInBtn.addEventListener("click", () => {
-  msalInstance.loginRedirect({ scopes: ["Sites.Selected"] });
-});
-
-signOutBtn.addEventListener("click", () => {
-  msalInstance.logoutRedirect();
-});
-
-// ---- Get an access token for Graph calls ----
-async function getGraphToken() {
-  const request = {
-    scopes: ["Sites.Selected"],
-    account: currentAccount
   };
-  try {
-    const result = await msalInstance.acquireTokenSilent(request);
-    return result.accessToken;
-  } catch (error) {
-    // Silent acquisition failed (e.g. token expired past refresh) — fall back to redirect
-    console.warn("Silent token acquisition failed, redirecting...", error);
-    msalInstance.acquireTokenRedirect(request);
-  }
-}
+  const SITE_ID = "kraemermm.sharepoint.com,14b8e4e5-569c-479d-b5eb-4a5ca4125cc0,650056b6-6652-4924-860f-ea63b28952ab";
+  const GRAPH_SCOPES = ["Sites.Selected"];
+  const PRODUCTS_LIST_NAME = "Gradation_Products";
+  const LOG_LIST_NAME = "Gradation_Master_Log";
 
-// ---- Find a list's ID by its display name ----
-async function getListId(token, listDisplayName) {
-  const url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists?$filter=displayName eq '${listDisplayName}'`;
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to find list '${listDisplayName}': ${response.status} ${await response.text()}`);
-  }
-  const data = await response.json();
-  if (!data.value || data.value.length === 0) {
-    throw new Error(`List '${listDisplayName}' not found on this site.`);
-  }
-  return data.value[0].id;
-}
+  const LOAD_WINDOW_MONTHS = 12;   // how much history to preload silently on sign-in
+  const DEFAULT_DISPLAY_MONTHS = 2; // default displayed range
+  const DEFAULT_LAST_N = 20;
+  const AUTO_SELECT_LAST_N = 10;    // "Include" auto-checked on quarry/product/type change
 
-// ---- Get all items (with field values) from a list ----
-async function getListItems(token, listId) {
-  let items = [];
-  let url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${listId}/items?expand=fields&$top=200`;
+  /* ================================================================
+     SIEVE REFERENCE — ordered largest mm -> smallest mm
+     ================================================================ */
+  const SIEVE_DEFS = [
+    {key:"Coarse_8in",     mm:203.2,  label:'8"'},
+    {key:"Coarse_6in",     mm:152.4,  label:'6"'},
+    {key:"Coarse_4in",     mm:101.6,  label:'4"'},
+    {key:"Coarse_3in",     mm:76.2,   label:'3"'},
+    {key:"Coarse_2in",     mm:50.8,   label:'2"'},
+    {key:"Coarse_1_7_8in", mm:47.6,   label:'1-7/8"'},
+    {key:"Coarse_1_1_2in", mm:38.1,   label:'1-1/2"'},
+    {key:"Coarse_1_1_4in", mm:31.75,  label:'1-1/4"'},
+    {key:"Coarse_1in",     mm:25.4,   label:'1"'},
+    {key:"Coarse_3_4in",   mm:19.0,   label:'3/4"'},
+    {key:"Coarse_5_8in",   mm:15.9,   label:'5/8"'},
+    {key:"Coarse_9_16in",  mm:14.3,   label:'9/16"'},
+    {key:"Coarse_1_2in",   mm:12.5,   label:'1/2"'},
+    {key:"Coarse_3_8in",   mm:9.5,    label:'3/8"'},
+    {key:"Coarse_No4",     mm:4.75,   label:"No. 4"},
+    {key:"Coarse_No8",     mm:2.36,   label:"No. 8"},
+    {key:"Coarse_No10",    mm:2.00,   label:"No. 10"},
+    {key:"Coarse_No30",    mm:0.60,   label:"No. 30"},
+    {key:"Coarse_No40",    mm:0.425,  label:"No. 40"},
+    {key:"Coarse_No60",    mm:0.25,   label:"No. 60"},
+    {key:"Coarse_No200",   mm:0.075,  label:"No. 200"},
+    {key:"Fine_3_8in",     mm:9.5,    label:'3/8"'},
+    {key:"Fine_No4",       mm:4.75,   label:"No. 4"},
+    {key:"Fine_No8",       mm:2.36,   label:"No. 8"},
+    {key:"Fine_No10",      mm:2.00,   label:"No. 10"},
+    {key:"Fine_No16",      mm:1.18,   label:"No. 16"},
+    {key:"Fine_No20",      mm:0.85,   label:"No. 20"},
+    {key:"Fine_No30",      mm:0.60,   label:"No. 30"},
+    {key:"Fine_No40",      mm:0.425,  label:"No. 40"},
+    {key:"Fine_No50",      mm:0.30,   label:"No. 50"},
+    {key:"Fine_No60",      mm:0.25,   label:"No. 60"},
+    {key:"Fine_No80",      mm:0.18,   label:"No. 80"},
+    {key:"Fine_No100",     mm:0.15,   label:"No. 100"},
+    {key:"Fine_No200",     mm:0.075,  label:"No. 200"},
+    {key:"Fine_No325",     mm:0.045,  label:"No. 325"}
+  ];
+  const SIEVE_BY_KEY = {};
+  SIEVE_DEFS.forEach(s => SIEVE_BY_KEY[s.key] = s);
 
-  while (url) {
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to read list items: ${response.status} ${await response.text()}`);
+  /* ================================================================
+     STATE
+     ================================================================ */
+  let msalInstance = null;
+  let activeAccount = null;
+
+  let products = [];       // raw fields[] from Gradation_Products
+  let listIdCache = {};    // displayName -> list id
+
+  let allTests = [];       // raw fields[] from Gradation_Master_Log (+ _itemId), accumulated
+  let loadedRanges = [];   // [{start:dayNum, end:dayNum}] merged, non-overlapping
+
+  let quarries = [];
+  let productsForQuarry = [];
+  let selectedQuarry = null;
+  let selectedProduct = null;      // Title string
+  let selectedSampleTypes = {Production:true, Loadout:true, Other:true};
+  let displayStart = null;         // Date
+  let displayEnd = null;           // Date
+  let lastN = DEFAULT_LAST_N;
+  let showSpec = true;
+  let showMinMax = false;
+  let includedTestIds = new Set(); // _itemId of checked "Include" rows
+
+  /* ================================================================
+     DOM helpers
+     ================================================================ */
+  const $ = id => document.getElementById(id);
+  function showError(msg){
+    const el = $("errorBanner");
+    el.textContent = msg;
+    el.style.display = "block";
+    console.error(msg);
+  }
+  function clearError(){ $("errorBanner").style.display = "none"; }
+  function setLoading(on){ $("loadingText").style.display = on ? "inline" : "none"; $("chartLoadingOverlay").style.display = on ? "flex" : "none"; }
+
+  /* ================================================================
+     DATE HELPERS (day-number space to avoid TZ/interval bugs)
+     ================================================================ */
+  function dayNum(d){ return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+  function fromDayNum(n){ const d = new Date(n * 86400000); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+  function addMonths(d, n){ const r = new Date(d); r.setMonth(r.getMonth() + n); return r; }
+  function toInputDate(d){ return d.toISOString().slice(0,10); }
+  function fromInputDate(s){ const [y,m,dd] = s.split("-").map(Number); return new Date(y, m-1, dd); }
+  function isoStartOfDay(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) + "T00:00:00Z"; }
+  function isoEndOfDay(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) + "T23:59:59Z"; }
+  function pad2(n){ return n < 10 ? "0"+n : ""+n; }
+  function fmtDate(d){
+    if (typeof d === "string") d = new Date(d);
+    return (d.getMonth()+1) + "/" + d.getDate() + "/" + d.getFullYear();
+  }
+
+  /* ================================================================
+     MSAL / AUTH
+     ================================================================ */
+  async function initAuth(){
+    msalInstance = new msal.PublicClientApplication(msalConfig);
+    await msalInstance.initialize();
+    try {
+      const resp = await msalInstance.handleRedirectPromise();
+      if (resp && resp.account) msalInstance.setActiveAccount(resp.account);
+    } catch(e){ showError("Sign-in error: " + e.message); }
+
+    activeAccount = msalInstance.getActiveAccount() || (msalInstance.getAllAccounts()[0] || null);
+    if (activeAccount) { msalInstance.setActiveAccount(activeAccount); onSignedIn(); }
+    else onSignedOut();
+
+    $("signInBtn").addEventListener("click", () => msalInstance.loginRedirect({scopes: GRAPH_SCOPES}));
+    $("signOutBtn").addEventListener("click", () => msalInstance.logoutRedirect());
+  }
+
+  async function getToken(){
+    const request = {scopes: GRAPH_SCOPES, account: activeAccount};
+    try {
+      const result = await msalInstance.acquireTokenSilent(request);
+      return result.accessToken;
+    } catch(e){
+      await msalInstance.acquireTokenRedirect(request);
+      return null; // page will redirect away
     }
-    const data = await response.json();
-    items = items.concat(data.value.map(item => item.fields));
-    url = data["@odata.nextLink"] || null; // pagination — SharePoint lists can be larger than one page
   }
-  return items;
-}
 
-loadDataBtn.addEventListener("click", async () => {
-  loadDataBtn.disabled = true;
-  log("\nGetting access token...");
-  try {
-    const token = await getGraphToken();
-    if (!token) return; // redirect in progress
-
-    log("Finding lists...");
-    const productsListId = await getListId(token, PRODUCTS_LIST_NAME);
-    const logListId = await getListId(token, LOG_LIST_NAME);
-    log(`Found Products list (${productsListId})`);
-    log(`Found Log list (${logListId})`);
-
-    log("Reading list items...");
-    const products = await getListItems(token, productsListId);
-    const logItems = await getListItems(token, logListId);
-
-    log(`Products: ${products.length} rows`);
-    log(`Log: ${logItems.length} rows`);
-    log("\nFull data logged to browser console (F12) for inspection.");
-
-    console.log("PRODUCTS:", products);
-    console.log("LOG:", logItems);
-
-    window.__gradationProducts = products;
-    window.__gradationLog = logItems;
-  } catch (error) {
-    log(`\nError: ${error.message}`);
-    console.error(error);
-  } finally {
-    loadDataBtn.disabled = false;
+  function onSignedIn(){
+    $("signedOutNotice").style.display = "none";
+    $("appBody").style.display = "block";
+    $("signInBtn").style.display = "none";
+    $("signOutBtn").style.display = "inline-block";
+    $("whoami").textContent = activeAccount.name || activeAccount.username || "";
+    bootstrap().catch(e => showError("Startup error: " + e.message));
   }
-});
+  function onSignedOut(){
+    $("signedOutNotice").style.display = "block";
+    $("appBody").style.display = "none";
+    $("signInBtn").style.display = "inline-block";
+    $("signOutBtn").style.display = "none";
+    $("whoami").textContent = "";
+  }
+
+  /* ================================================================
+     GRAPH HELPERS
+     ================================================================ */
+  async function graphGet(url, extraHeaders){
+    const token = await getToken();
+    if (!token) return null;
+    const res = await fetch(url, {headers: Object.assign({Authorization: "Bearer " + token}, extraHeaders || {})});
+    if (!res.ok){
+      const body = await res.text().catch(()=> "");
+      throw new Error("Graph " + res.status + " on " + url + " — " + body.slice(0,200));
+    }
+    return res.json();
+  }
+
+  async function getListId(displayName){
+    if (listIdCache[displayName]) return listIdCache[displayName];
+    const data = await graphGet(
+      "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists?$filter=" +
+      encodeURIComponent("displayName eq '" + displayName + "'")
+    );
+    if (!data || !data.value || !data.value.length) throw new Error("SharePoint list not found: " + displayName);
+    listIdCache[displayName] = data.value[0].id;
+    return listIdCache[displayName];
+  }
+
+  async function graphGetAllPages(url, extraHeaders){
+    let items = [];
+    let next = url;
+    while (next){
+      const data = await graphGet(next, extraHeaders);
+      if (!data) break;
+      items = items.concat(data.value || []);
+      next = data["@odata.nextLink"] || null;
+    }
+    return items;
+  }
+
+  async function loadProducts(){
+    const listId = await getListId(PRODUCTS_LIST_NAME);
+    const items = await graphGetAllPages(
+      "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId + "/items?expand=fields&$top=200"
+    );
+    return items.map(i => i.fields);
+  }
+
+  async function fetchTestsInRange(startDate, endDate){
+    const listId = await getListId(LOG_LIST_NAME);
+    const filter = encodeURIComponent(
+      "fields/SampleDate ge '" + isoStartOfDay(startDate) + "' and fields/SampleDate le '" + isoEndOfDay(endDate) + "'"
+    );
+    const url = "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId +
+      "/items?expand=fields&$filter=" + filter + "&$top=200";
+    const items = await graphGetAllPages(url, {Prefer: "HonorNonIndexedQueriesWarningMayFailRandomly"});
+    return items.map(i => Object.assign({_itemId: i.id}, i.fields));
+  }
+
+  /* ================================================================
+     RANGE-COALESCING CACHE
+     ================================================================ */
+  function mergeLoadedRange(startDay, endDay){
+    loadedRanges.push({start: startDay, end: endDay});
+    loadedRanges.sort((a,b) => a.start - b.start);
+    const merged = [];
+    for (const r of loadedRanges){
+      if (merged.length && r.start <= merged[merged.length-1].end + 1){
+        merged[merged.length-1].end = Math.max(merged[merged.length-1].end, r.end);
+      } else merged.push({start:r.start, end:r.end});
+    }
+    loadedRanges = merged;
+  }
+
+  function getGaps(startDay, endDay){
+    let gaps = [{start:startDay, end:endDay}];
+    for (const r of loadedRanges){
+      const next = [];
+      for (const g of gaps){
+        if (r.end < g.start || r.start > g.end){ next.push(g); continue; }
+        if (r.start > g.start) next.push({start:g.start, end:r.start-1});
+        if (r.end < g.end) next.push({start:r.end+1, end:g.end});
+      }
+      gaps = next;
+    }
+    return gaps.filter(g => g.start <= g.end);
+  }
+
+  async function ensureDataLoaded(startDate, endDate){
+    const gaps = getGaps(dayNum(startDate), dayNum(endDate));
+    if (!gaps.length) return;
+    setLoading(true);
+    clearError();
+    try {
+      for (const g of gaps){
+        const rows = await fetchTestsInRange(fromDayNum(g.start), fromDayNum(g.end));
+        const known = new Set(allTests.map(t => t._itemId));
+        for (const row of rows){ if (!known.has(row._itemId)){ allTests.push(row); known.add(row._itemId); } }
+        mergeLoadedRange(g.start, g.end);
+      }
+    } catch(e){
+      showError("Could not load data from SharePoint: " + e.message);
+    } finally {
+      setLoading(false);
+      updateStatusLine();
+    }
+  }
+
+  function updateStatusLine(){
+    if (!loadedRanges.length){ $("statusText").textContent = "No data cached yet."; return; }
+    const first = loadedRanges[0].start, last = loadedRanges[loadedRanges.length-1].end;
+    $("statusText").textContent =
+      "Cached: " + fmtDate(fromDayNum(first)) + " – " + fmtDate(fromDayNum(last)) +
+      "  (" + allTests.length + " tests in memory)";
+  }
+
+  /* ================================================================
+     BOOTSTRAP
+     ================================================================ */
+  async function bootstrap(){
+    setLoading(true);
+    clearError();
+    try {
+      products = await loadProducts();
+    } catch(e){
+      showError("Could not load Gradation_Products: " + e.message);
+      setLoading(false);
+      return;
+    }
+
+    quarries = Array.from(new Set(products.map(p => p.Quarry).filter(Boolean))).sort();
+    populateSelect($("quarrySelect"), quarries);
+    selectedQuarry = quarries[0] || null;
+    refreshProductOptions();
+
+    const today = new Date();
+    const loadStart = addMonths(today, -LOAD_WINDOW_MONTHS);
+    displayEnd = today;
+    displayStart = addMonths(today, -DEFAULT_DISPLAY_MONTHS);
+    $("startDate").value = toInputDate(displayStart);
+    $("endDate").value = toInputDate(displayEnd);
+
+    renderSampleTypeGroup();
+    wireControls();
+
+    await ensureDataLoaded(loadStart, today);
+    resetIncludedToLastN();
+    render();
+  }
+
+  function populateSelect(sel, values){
+    sel.innerHTML = "";
+    values.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
+
+  function refreshProductOptions(){
+    productsForQuarry = products.filter(p => p.Quarry === selectedQuarry &&
+      (p.Active === undefined || p.Active === null || p.Active === true || p.Active === "1" || p.Active === "Yes"));
+    if (!productsForQuarry.length) productsForQuarry = products.filter(p => p.Quarry === selectedQuarry);
+    const names = productsForQuarry.map(p => p.Title).filter(Boolean);
+    populateSelect($("productSelect"), names);
+    selectedProduct = names[0] || null;
+  }
+
+  function renderSampleTypeGroup(){
+    const group = $("sampleTypeGroup");
+    group.innerHTML = "";
+    ["Production","Loadout","Other"].forEach(t => {
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = selectedSampleTypes[t]; cb.dataset.type = t;
+      cb.addEventListener("change", () => {
+        selectedSampleTypes[t] = cb.checked;
+        resetIncludedToLastN();
+        render();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(t));
+      group.appendChild(label);
+    });
+  }
+
+  function wireControls(){
+    $("quarrySelect").addEventListener("change", e => {
+      selectedQuarry = e.target.value;
+      refreshProductOptions();
+      resetIncludedToLastN();
+      render();
+    });
+    $("productSelect").addEventListener("change", e => {
+      selectedProduct = e.target.value;
+      resetIncludedToLastN();
+      render();
+    });
+    $("startDate").addEventListener("change", async e => {
+      displayStart = fromInputDate(e.target.value);
+      await ensureDataLoaded(displayStart, displayEnd);
+      render();
+    });
+    $("endDate").addEventListener("change", async e => {
+      displayEnd = fromInputDate(e.target.value);
+      await ensureDataLoaded(displayStart, displayEnd);
+      render();
+    });
+    $("lastNInput").addEventListener("input", e => {
+      lastN = Math.max(0, parseInt(e.target.value || "0", 10));
+      render();
+    });
+    $("toggleSpec").addEventListener("change", e => { showSpec = e.target.checked; render(); });
+    $("toggleMinMax").addEventListener("change", e => { showMinMax = e.target.checked; render(); });
+  }
+
+  /* ================================================================
+     DATA MODEL — filtering, day-averaging, stats
+     ================================================================ */
+  function getCurrentProductFields(){
+    return productsForQuarry.find(p => p.Title === selectedProduct) || null;
+  }
+
+  function getSievesForProduct(productFields){
+    if (!productFields) return [];
+    return SIEVE_DEFS.filter(s => {
+      const v = productFields[s.key];
+      return v !== undefined && v !== null && String(v).trim() !== "";
+    });
+  }
+
+  function testsInDateRange(start, end){
+    const s = dayNum(start), e = dayNum(end);
+    return allTests.filter(t => {
+      if (t.Quarry !== selectedQuarry || t.Product !== selectedProduct) return false;
+      if (!selectedSampleTypes[t.SampleType]) return false;
+      if (!t.SampleDate) return false;
+      const d = dayNum(new Date(t.SampleDate));
+      return d >= s && d <= e;
+    });
+  }
+
+  function sortKey(t){ return (t.SampleDate || "") + "T" + (t.SampleTime || "00:00:00"); }
+
+  function computeDayAverages(tests, sieves){
+    const groups = {};
+    tests.forEach(t => {
+      const day = (t.SampleDate || "").slice(0,10);
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(t);
+    });
+    return Object.keys(groups).map(day => {
+      const rows = groups[day];
+      const values = {};
+      sieves.forEach(s => {
+        const vals = rows.map(r => parseFloat(r[s.key + "_Pct"])).filter(v => !isNaN(v));
+        values[s.key] = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+      });
+      return {date: day, values: values};
+    });
+  }
+
+  function computeStats(dayAverages, sieves){
+    const avg = {}, min = {}, max = {};
+    sieves.forEach(s => {
+      const vals = dayAverages.map(d => d.values[s.key]).filter(v => v !== null && v !== undefined);
+      if (!vals.length){ avg[s.key]=null; min[s.key]=null; max[s.key]=null; return; }
+      avg[s.key] = vals.reduce((a,b)=>a+b,0)/vals.length;
+      min[s.key] = Math.min.apply(null, vals);
+      max[s.key] = Math.max.apply(null, vals);
+    });
+    return {avg, min, max};
+  }
+
+  function parseSpec(raw){
+    if (raw === undefined || raw === null || String(raw).trim() === "") return null;
+    const str = String(raw).trim();
+    if (str === "*") return {low:null, high:null, wildcard:true};
+    if (str.indexOf("-") !== -1){
+      const parts = str.split("-").map(s => parseFloat(s.trim()));
+      return {low:parts[0], high:parts[1]};
+    }
+    const v = parseFloat(str);
+    return {low:v, high:v};
+  }
+
+  function resetIncludedToLastN(){
+    includedTestIds = new Set();
+    const rangeTests = testsInDateRange(displayStart, displayEnd).sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
+    rangeTests.slice(0, AUTO_SELECT_LAST_N).forEach(t => includedTestIds.add(t._itemId));
+  }
+
+  /* ================================================================
+     RENDER — top level
+     ================================================================ */
+  function render(){
+    const productFields = getCurrentProductFields();
+    const sieves = getSievesForProduct(productFields);
+    const rangeTests = testsInDateRange(displayStart, displayEnd).sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
+    const shownTests = lastN > 0 ? rangeTests.slice(0, lastN) : rangeTests;
+    const dayAverages = computeDayAverages(rangeTests, sieves);
+    const stats = computeStats(dayAverages, sieves);
+    const specs = {};
+    sieves.forEach(s => specs[s.key] = productFields ? parseSpec(productFields[s.key]) : null);
+
+    $("chartTitle").textContent = (selectedProduct || "—") + " Particle Size Distribution " +
+      fmtDate(displayStart) + " – " + fmtDate(displayEnd);
+
+    renderChart(sieves, stats, specs);
+    renderTestPicker(shownTests, sieves);
+    renderSummary(sieves, stats);
+  }
+
+  /* ================================================================
+     CHART (SVG)
+     ================================================================ */
+  function renderChart(sieves, stats, specs){
+    const wrap = $("chartWrap");
+    wrap.querySelectorAll("svg").forEach(n => n.remove());
+    const emptyMsg = wrap.querySelector(".chart-empty");
+    if (!sieves.length){ emptyMsg.style.display = "block"; return; }
+    emptyMsg.style.display = "none";
+
+    const W = 1000, H = 420;
+    const marginLeft = 46, marginRight = 20, marginTop = 54, marginBottom = 16;
+    const plotW = W - marginLeft - marginRight;
+    const plotH = H - marginTop - marginBottom;
+
+    const mms = sieves.map(s => s.mm);
+    const minMm = Math.min.apply(null, mms), maxMm = Math.max.apply(null, mms);
+    const logMin = Math.log10(minMm), logMax = Math.log10(maxMm);
+
+    function xOf(mm){
+      if (logMax === logMin) return marginLeft + plotW/2;
+      const t = (Math.log10(mm) - logMin) / (logMax - logMin);
+      return marginLeft + (1 - t) * plotW; // largest mm on the left
+    }
+    function yOf(pct){ return marginTop + (1 - (pct/100)) * plotH; }
+
+    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">';
+
+    // horizontal gridlines + y labels
+    for (let p = 0; p <= 100; p += 20){
+      const y = yOf(p);
+      svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#cdd1d2" stroke-width="1"/>';
+      svg += '<text x="' + (marginLeft-8) + '" y="' + (y+3) + '" font-size="10" fill="#565d61" text-anchor="end">' + p + '</text>';
+    }
+    svg += '<text x="14" y="' + (marginTop + plotH/2) + '" font-size="10" fill="#565d61" text-anchor="middle" transform="rotate(-90 14 ' + (marginTop+plotH/2) + ')">% Passing</text>';
+
+    // vertical sieve lines + labels
+    sieves.forEach(s => {
+      const x = xOf(s.mm);
+      svg += '<line x1="' + x + '" y1="' + marginTop + '" x2="' + x + '" y2="' + (marginTop+plotH) + '" stroke="#c7cbcc" stroke-width="1"/>';
+      svg += '<text x="' + x + '" y="' + (marginTop-8) + '" font-size="9.5" fill="#565d61" text-anchor="middle">' + escapeXml(s.label) + '</text>';
+    });
+
+    // spec low/high (gray dashed)
+    if (showSpec){
+      ["low","high"].forEach(bound => {
+        let pts = [];
+        sieves.forEach(s => {
+          const spec = specs[s.key];
+          if (spec && !spec.wildcard && spec[bound] !== null && spec[bound] !== undefined && !isNaN(spec[bound])){
+            pts.push([xOf(s.mm), yOf(spec[bound])]);
+          }
+        });
+        if (pts.length > 1){
+          svg += '<polyline points="' + pts.map(p=>p.join(",")).join(" ") + '" fill="none" stroke="#8a9094" stroke-width="1.5" stroke-dasharray="5,4"/>';
+        }
+      });
+    }
+
+    // min/max (black, no markers)
+    if (showMinMax){
+      ["min","max"].forEach(bound => {
+        let pts = [];
+        sieves.forEach(s => {
+          const v = stats[bound][s.key];
+          if (v !== null && v !== undefined) pts.push([xOf(s.mm), yOf(v)]);
+        });
+        if (pts.length > 1){
+          svg += '<polyline points="' + pts.map(p=>p.join(",")).join(" ") + '" fill="none" stroke="#1c1f21" stroke-width="1.5"/>';
+        }
+      });
+    }
+
+    // average (dark red, bold, with markers) — always on
+    {
+      let pts = [];
+      sieves.forEach(s => {
+        const v = stats.avg[s.key];
+        if (v !== null && v !== undefined) pts.push([xOf(s.mm), yOf(v)]);
+      });
+      if (pts.length > 1){
+        svg += '<polyline points="' + pts.map(p=>p.join(",")).join(" ") + '" fill="none" stroke="#b23a2f" stroke-width="2.75"/>';
+      }
+      pts.forEach(p => { svg += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.5" fill="#b23a2f"/>'; });
+    }
+
+    svg += '</svg>';
+    wrap.insertAdjacentHTML("beforeend", svg);
+  }
+
+  function escapeXml(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ================================================================
+     TEST PICKER TABLE
+     ================================================================ */
+  function renderTestPicker(tests, sieves){
+    const table = $("testPickerTable");
+    const thead = table.querySelector("thead tr");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    thead.innerHTML =
+      '<th class="left">Include</th><th class="left">Sample Date</th>' +
+      sieves.map(s => '<th>' + escapeXml(s.label) + '</th>').join("") +
+      '<th class="left">Notes</th>';
+
+    if (!tests.length){
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (sieves.length+3) + '">No tests in this range.</td></tr>';
+      return;
+    }
+
+    tests.forEach(t => {
+      const tr = document.createElement("tr");
+      const checked = includedTestIds.has(t._itemId);
+
+      const tdInc = document.createElement("td");
+      tdInc.className = "left";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = checked;
+      cb.addEventListener("change", () => {
+        if (cb.checked) includedTestIds.add(t._itemId); else includedTestIds.delete(t._itemId);
+        renderSummary(sieves, computeStats(computeDayAverages(testsInDateRange(displayStart, displayEnd), sieves), sieves));
+      });
+      tdInc.appendChild(cb);
+      tr.appendChild(tdInc);
+
+      const tdDate = document.createElement("td");
+      tdDate.className = "left";
+      tdDate.textContent = t.SampleDate ? fmtDate(t.SampleDate) : "—";
+      tr.appendChild(tdDate);
+
+      sieves.forEach(s => {
+        const td = document.createElement("td");
+        const v = t[s.key + "_Pct"];
+        td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
+        tr.appendChild(td);
+      });
+
+      const tdNotes = document.createElement("td");
+      tdNotes.className = "notes-cell";
+      tdNotes.title = t.Notes || "";
+      tdNotes.textContent = t.Notes || "";
+      tr.appendChild(tdNotes);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ================================================================
+     SUMMARY TABLE — selected (included) tests + full-range average row
+     ================================================================ */
+  function renderSummary(sieves, stats){
+    const table = $("summaryTable");
+    const thead = table.querySelector("thead tr");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = '<th class="left">Sample Date</th>' + sieves.map(s => '<th>' + escapeXml(s.label) + '</th>').join("");
+    tbody.innerHTML = "";
+
+    const included = allTests.filter(t => includedTestIds.has(t._itemId))
+      .sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
+
+    if (!included.length && !sieves.length){
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="1">No tests selected.</td></tr>';
+      return;
+    }
+
+    included.forEach(t => {
+      const tr = document.createElement("tr");
+      const tdDate = document.createElement("td");
+      tdDate.className = "left";
+      tdDate.textContent = t.SampleDate ? fmtDate(t.SampleDate) : "—";
+      tr.appendChild(tdDate);
+      sieves.forEach(s => {
+        const td = document.createElement("td");
+        const v = t[s.key + "_Pct"];
+        td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    const trAvg = document.createElement("tr");
+    trAvg.className = "avg-row";
+    const tdLabel = document.createElement("td");
+    tdLabel.className = "left";
+    tdLabel.textContent = "Average (full range)";
+    trAvg.appendChild(tdLabel);
+    sieves.forEach(s => {
+      const td = document.createElement("td");
+      const v = stats.avg[s.key];
+      td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
+      trAvg.appendChild(td);
+    });
+    tbody.appendChild(trAvg);
+  }
+
+  /* ================================================================
+     BOOT
+     ================================================================ */
+  initAuth();
+
+})();
 </script>
-
 </body>
 </html>
