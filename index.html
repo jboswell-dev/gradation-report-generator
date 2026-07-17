@@ -1,5 +1,89 @@
 <!DOCTYPE html>
-<html>
-<head><title>Gradation Report Generator</title></head>
-<body><h1>Coming soon</h1></body>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gradation Report Generator</title>
+<script src="https://alcdn.msauth.net/browser/3.7.1/js/msal-browser.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+  button { background: #0078d4; color: white; border: none; padding: 10px 20px; font-size: 15px; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #106ebe; }
+  #status { margin-top: 24px; padding: 16px; background: #f3f2f1; border-radius: 4px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Gradation Report Generator</h1>
+<p>Stage 1 — sign-in test.</p>
+
+<button id="signInBtn">Sign in</button>
+<button id="signOutBtn" class="hidden">Sign out</button>
+
+<div id="status"></div>
+
+<script>
+// ---- CONFIG ----
+// These two values are NOT secrets — a browser SPA app registration
+// has no client secret. Safe to be public in this repo.
+const msalConfig = {
+  auth: {
+    clientId: "46835db0-e05c-4d34-b610-3a08562f0788",
+    authority: "https://login.microsoftonline.com/6e80e38c-9c64-427b-a5c3-9d42a7077b22",
+    redirectUri: "https://jboswell-dev.github.io/gradation-report-generator/"
+  },
+  cache: {
+    cacheLocation: "sessionStorage" // clears on tab close; simplest to reason about for now
+  }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+const statusDiv = document.getElementById("status");
+const signInBtn = document.getElementById("signInBtn");
+const signOutBtn = document.getElementById("signOutBtn");
+
+function showSignedIn(account) {
+  statusDiv.innerHTML = `<strong>Signed in as:</strong><br>${account.name}<br>${account.username}`;
+  signInBtn.classList.add("hidden");
+  signOutBtn.classList.remove("hidden");
+}
+
+function showSignedOut() {
+  statusDiv.innerHTML = "Not signed in.";
+  signInBtn.classList.remove("hidden");
+  signOutBtn.classList.add("hidden");
+}
+
+// Handle the redirect back from Microsoft's sign-in page
+msalInstance.initialize().then(() => {
+  return msalInstance.handleRedirectPromise();
+}).then((response) => {
+  if (response && response.account) {
+    showSignedIn(response.account);
+  } else {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      showSignedIn(accounts[0]);
+    } else {
+      showSignedOut();
+    }
+  }
+}).catch((error) => {
+  statusDiv.innerHTML = `<strong>Sign-in error:</strong><br>${error.message}`;
+  console.error(error);
+});
+
+signInBtn.addEventListener("click", () => {
+  msalInstance.loginRedirect({
+    scopes: ["Sites.Selected"]
+  });
+});
+
+signOutBtn.addEventListener("click", () => {
+  msalInstance.logoutRedirect();
+});
+</script>
+
+</body>
 </html>
