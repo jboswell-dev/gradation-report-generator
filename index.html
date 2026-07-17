@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradation Report Generator — Kraemer Materials</title>
+<title>Gradation Report Generator — Kraemer Mining & Materials, Inc.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@
     min-height:100vh;
   }
   .app{
-    max-width:1400px;
+    max-width:1680px;
     margin:0 auto;
     padding:16px 20px 40px;
   }
@@ -233,16 +233,25 @@
     font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate-dark);
   }
 
-  /* ---------- tables ---------- */
-  .tables-row{
+  /* ---------- main content layout: test history left, chart+summary stacked right ---------- */
+  .main-grid{
     display:grid;
-    grid-template-columns:1.5fr 1fr;
+    grid-template-columns:1.05fr 1fr;
     gap:14px;
     margin-bottom:14px;
-    align-items:start;
+    align-items:stretch;
   }
-  @media (max-width:980px){
-    .tables-row{grid-template-columns:1fr;}
+  @media (max-width:1100px){
+    .main-grid{grid-template-columns:1fr;}
+  }
+  .main-grid .right-col{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .main-grid .right-col .chart-panel,
+  .main-grid .right-col .table-panel{
+    margin-bottom:0;
   }
   .table-panel{
     background:var(--panel);
@@ -250,23 +259,29 @@
     border-radius:var(--radius);
     padding:12px 14px;
     box-shadow:var(--shadow);
-    overflow:auto;
-    max-height:420px;
+    overflow-x:auto;
+    overflow-y:auto;
   }
-  table{border-collapse:collapse;width:100%;font-size:11.5px;}
+  #testPickerPanel{
+    max-height:700px;
+  }
+  #summaryPanel{
+    max-height:320px;
+  }
+  table{border-collapse:collapse;width:100%;font-size:10.5px;}
   thead th{
     position:sticky;top:0;background:var(--panel-2);
     font-family:'IBM Plex Mono',monospace;
-    font-size:10px;text-transform:uppercase;letter-spacing:0.04em;
+    font-size:9.5px;text-transform:uppercase;letter-spacing:0.03em;
     color:var(--ink-soft);
     text-align:right;
-    padding:5px 7px;
+    padding:4px 5px;
     border-bottom:1px solid var(--line-strong);
     white-space:nowrap;
   }
   thead th.left, tbody td.left{text-align:left;}
   tbody td{
-    padding:4px 7px;
+    padding:3px 5px;
     border-bottom:1px solid var(--line);
     text-align:right;
     font-family:'IBM Plex Mono',monospace;
@@ -280,7 +295,7 @@
   }
   tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--rust-dark);}
   .notes-cell{
-    max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     text-align:left;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-soft);
   }
   td.spec-out{color:var(--rust);font-weight:600;}
@@ -314,7 +329,7 @@
   <div class="topbar">
     <div class="brand">
       <h1>Gradation Report Generator</h1>
-      <span class="sub">KRAEMER MATERIALS · TECHNICAL SERVICES</span>
+      <span class="sub">KRAEMER MINING &amp; MATERIALS, INC. · TECHNICAL SERVICES</span>
     </div>
     <div class="authbox" id="authbox">
       <span class="who" id="whoami"></span>
@@ -363,7 +378,7 @@
           <label>Chart overlays</label>
           <div class="toggles">
             <label><span class="swatch sw-spec"></span> Spec range <input type="checkbox" id="toggleSpec" checked></label>
-            <label><span class="swatch sw-minmax"></span> Min / Max <input type="checkbox" id="toggleMinMax"></label>
+            <label><span class="swatch sw-minmax"></span> Min / Max <input type="checkbox" id="toggleMinMax" checked></label>
           </div>
         </div>
       </div>
@@ -373,17 +388,8 @@
       </div>
     </div>
 
-    <!-- ================= CHART ================= -->
-    <div class="chart-panel">
-      <h2 class="panel-title" id="chartTitle">Particle Size Distribution</h2>
-      <div class="chart-wrap" id="chartWrap">
-        <div class="chart-empty">No data for this selection.</div>
-        <div class="chart-loading-overlay" id="chartLoadingOverlay">Loading…</div>
-      </div>
-    </div>
-
-    <!-- ================= TABLES ================= -->
-    <div class="tables-row">
+    <!-- ================= MAIN: test history left, chart + summary right ================= -->
+    <div class="main-grid">
       <div class="table-panel" id="testPickerPanel">
         <h2 class="panel-title">Test History</h2>
         <table id="testPickerTable">
@@ -391,12 +397,23 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="table-panel" id="summaryPanel">
-        <h2 class="panel-title">Report Summary</h2>
-        <table id="summaryTable">
-          <thead><tr></tr></thead>
-          <tbody></tbody>
-        </table>
+
+      <div class="right-col">
+        <div class="chart-panel">
+          <h2 class="panel-title" id="chartTitle">Particle Size Distribution</h2>
+          <div class="chart-wrap" id="chartWrap">
+            <div class="chart-empty">No data for this selection.</div>
+            <div class="chart-loading-overlay" id="chartLoadingOverlay">Loading…</div>
+          </div>
+        </div>
+
+        <div class="table-panel" id="summaryPanel">
+          <h2 class="panel-title">Report Summary</h2>
+          <table id="summaryTable">
+            <thead><tr></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -503,12 +520,12 @@
   let productsForQuarry = [];
   let selectedQuarry = null;
   let selectedProduct = null;      // Title string
-  let selectedSampleTypes = {Production:true, Loadout:true, Other:true};
+  let selectedSampleTypes = {Production:true, Loadout:false, Other:false};
   let displayStart = null;         // Date
   let displayEnd = null;           // Date
   let lastN = DEFAULT_LAST_N;
   let showSpec = true;
-  let showMinMax = false;
+  let showMinMax = true;
   let includedTestIds = new Set(); // _itemId of checked "Include" rows
 
   /* ================================================================
@@ -907,7 +924,7 @@
     emptyMsg.style.display = "none";
 
     const W = 1000, H = 420;
-    const marginLeft = 46, marginRight = 20, marginTop = 54, marginBottom = 16;
+    const marginLeft = 46, marginRight = 20, marginTop = 54, marginBottom = 36;
     const plotW = W - marginLeft - marginRight;
     const plotH = H - marginTop - marginBottom;
 
@@ -927,16 +944,30 @@
     // horizontal gridlines + y labels
     for (let p = 0; p <= 100; p += 20){
       const y = yOf(p);
-      svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#cdd1d2" stroke-width="1"/>';
+      svg += '<line x1="' + marginLeft + '" y1="' + y + '" x2="' + (W-marginRight) + '" y2="' + y + '" stroke="#dde0e1" stroke-width="1"/>';
       svg += '<text x="' + (marginLeft-8) + '" y="' + (y+3) + '" font-size="10" fill="#565d61" text-anchor="end">' + p + '</text>';
     }
     svg += '<text x="14" y="' + (marginTop + plotH/2) + '" font-size="10" fill="#565d61" text-anchor="middle" transform="rotate(-90 14 ' + (marginTop+plotH/2) + ')">% Passing</text>';
 
-    // vertical sieve lines + labels
+    // log-scale mm axis: muted decade/half-decade gridlines with numeric mm labels along the bottom
+    const axisTicks = [];
+    const decadeCandidates = [0.001,0.003,0.01,0.03,0.1,0.3,1,3,10,30,100,300];
+    decadeCandidates.forEach(v => { if (v >= minMm*0.98 && v <= maxMm*1.02) axisTicks.push(v); });
+    if (axisTicks.indexOf(minMm) === -1) axisTicks.push(minMm);
+    if (axisTicks.indexOf(maxMm) === -1) axisTicks.push(maxMm);
+    axisTicks.forEach(mm => {
+      const x = xOf(mm);
+      svg += '<line x1="' + x + '" y1="' + marginTop + '" x2="' + x + '" y2="' + (marginTop+plotH) + '" stroke="#e3e5e6" stroke-width="1"/>';
+      const label = mm >= 1 ? (Math.round(mm*100)/100).toString() : mm.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+      svg += '<text x="' + x + '" y="' + (marginTop+plotH+13) + '" font-size="8.5" fill="#8a9094" text-anchor="middle">' + label + '</text>';
+    });
+    svg += '<text x="' + (marginLeft+plotW/2) + '" y="' + (H-4) + '" font-size="9.5" fill="#565d61" text-anchor="middle">Sieve Size (mm), log scale</text>';
+
+    // vertical sieve-constant lines (actual sieves used by this product) + labels — darker, more prominent than the axis gridlines
     sieves.forEach(s => {
       const x = xOf(s.mm);
-      svg += '<line x1="' + x + '" y1="' + marginTop + '" x2="' + x + '" y2="' + (marginTop+plotH) + '" stroke="#c7cbcc" stroke-width="1"/>';
-      svg += '<text x="' + x + '" y="' + (marginTop-8) + '" font-size="9.5" fill="#565d61" text-anchor="middle">' + escapeXml(s.label) + '</text>';
+      svg += '<line x1="' + x + '" y1="' + marginTop + '" x2="' + x + '" y2="' + (marginTop+plotH) + '" stroke="#6b7175" stroke-width="1.1"/>';
+      svg += '<text x="' + x + '" y="' + (marginTop-8) + '" font-size="9.5" fill="#3a3f42" text-anchor="middle">' + escapeXml(s.label) + '</text>';
     });
 
     // spec low/high (gray dashed)
@@ -1001,7 +1032,7 @@
     tbody.innerHTML = "";
 
     thead.innerHTML =
-      '<th class="left">Include</th><th class="left">Sample Date</th>' +
+      '<th class="left">Incl.</th><th class="left">Date</th>' +
       sieves.map(s => '<th>' + escapeXml(s.label) + '</th>').join("") +
       '<th class="left">Notes</th>';
 
@@ -1057,24 +1088,25 @@
     thead.innerHTML = '<th class="left">Sample Date</th>' + sieves.map(s => '<th>' + escapeXml(s.label) + '</th>').join("");
     tbody.innerHTML = "";
 
-    const included = allTests.filter(t => includedTestIds.has(t._itemId))
-      .sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
+    const included = allTests.filter(t => includedTestIds.has(t._itemId));
+    const includedDayAverages = computeDayAverages(included, sieves)
+      .sort((a,b) => b.date.localeCompare(a.date));
 
-    if (!included.length && !sieves.length){
+    if (!includedDayAverages.length && !sieves.length){
       tbody.innerHTML = '<tr class="empty-row"><td colspan="1">No tests selected.</td></tr>';
       return;
     }
 
-    included.forEach(t => {
+    includedDayAverages.forEach(d => {
       const tr = document.createElement("tr");
       const tdDate = document.createElement("td");
       tdDate.className = "left";
-      tdDate.textContent = t.SampleDate ? fmtDate(t.SampleDate) : "—";
+      tdDate.textContent = fmtDate(d.date);
       tr.appendChild(tdDate);
       sieves.forEach(s => {
         const td = document.createElement("td");
-        const v = t[s.key + "_Pct"];
-        td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
+        const v = d.values[s.key];
+        td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
