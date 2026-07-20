@@ -442,7 +442,7 @@
       </div>
       <div class="generate-panel">
         <button class="primary" id="generateBtn">Generate Report</button>
-        <span class="hint" id="generateHint">Downloads a PDF report; also downloads a filled G&amp;B-104 if this product has a Cert of Agg.</span>
+        <span class="hint" id="generateHint"></span>
       </div>
     </div>
 
@@ -1340,7 +1340,7 @@
     }
     function yOf(pct){ return y0 + mT + (1 - (pct/100)) * plotH; }
 
-    doc.setDrawColor(180,180,180); doc.setLineWidth(0.008);
+    doc.setDrawColor(0,0,0); doc.setLineWidth(0.01);
     doc.rect(x0+mL, y0+mT, plotW, plotH);
 
     doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
@@ -1348,11 +1348,11 @@
       const yy = yOf(p);
       doc.setDrawColor(201,204,205); doc.setLineWidth(0.005);
       doc.line(x0+mL, yy, x0+w-mR, yy);
-      doc.setTextColor(69,75,78);
+      doc.setTextColor(0,0,0);
       doc.text(String(p), x0+mL-0.06, yy+0.025, {align:"right"});
     }
-    doc.setFontSize(7.5);
-    doc.text("% Passing", x0+0.13, y0+mT+plotH/2, {align:"center", angle:90});
+    doc.setFontSize(7.5); doc.setTextColor(0,0,0);
+    doc.text("% Passing", x0+0.14, y0+mT+plotH/2, {align:"center", angle:90});
 
     const loE = Math.floor(Math.log10(domainMinMm)), hiE = Math.ceil(Math.log10(domainMaxMm));
     for (let e = loE; e <= hiE; e++){
@@ -1366,12 +1366,12 @@
         doc.line(xx, y0+mT, xx, y0+mT+plotH);
         if (isMajor){
           const label = v >= 1 ? (Math.round(v*100)/100).toString() : v.toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
-          doc.setTextColor(107,113,117); doc.setFontSize(7);
+          doc.setTextColor(0,0,0); doc.setFontSize(7);
           doc.text(label, xx, y0+mT+plotH+0.16, {align:"center"});
         }
       }
     }
-    doc.setTextColor(69,75,78); doc.setFontSize(8);
+    doc.setTextColor(0,0,0); doc.setFontSize(8);
     doc.text("Sieve Size (mm)", x0+mL+plotW/2, y0+h-0.04, {align:"center"});
 
     const sieveFontSize = 7.6;
@@ -1386,9 +1386,9 @@
     sieves.forEach((s, i) => {
       const xx = xOf(s.mm);
       const labelY = raised[i] ? (y0+mT-0.09-0.14) : (y0+mT-0.09);
-      doc.setTextColor(58,63,66);
+      doc.setTextColor(0,0,0);
       doc.text(s.label, xx, labelY, {align:"center"});
-      doc.setDrawColor(58,63,66); doc.setLineWidth(0.014);
+      doc.setDrawColor(0,0,0); doc.setLineWidth(0.014);
       doc.line(xx, y0+mT-0.03, xx, y0+mT+0.05);
     });
 
@@ -1444,9 +1444,15 @@
     const pageW = 8.5, pageH = 11, margin = 0.5;
     const contentW = pageW - margin*2;
     let y = margin;
+    let boxTop = margin;
 
+    function closeSectionBox(){
+      doc.setDrawColor(0,0,0); doc.setLineWidth(0.014);
+      doc.rect(margin, boxTop, contentW, y - boxTop);
+    }
     function newPageIfNeeded(need){
       if (y + need > pageH - margin - 0.3){
+        closeSectionBox();
         doc.addPage();
         y = margin;
         return true;
@@ -1455,6 +1461,7 @@
     }
     function sectionBar(label){
       newPageIfNeeded(0.3);
+      boxTop = y;
       doc.setFillColor.apply(doc, KRAEMER_RED);
       doc.rect(margin, y, contentW, 0.26, "F");
       doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(255,255,255);
@@ -1462,16 +1469,19 @@
       y += 0.26;
     }
 
+    // header: logo enlarged and pulled toward the top-left corner; title centered on the page
+    const logoW = 1.4, logoH = logoW * (336/500);
+    const logoX = margin - 0.15, logoY = margin - 0.15;
     if (opts.logoDataUrl){
-      const logoW = 1.05, logoH = logoW * (336/500);
-      doc.addImage(opts.logoDataUrl, "PNG", margin, y, logoW, logoH);
+      doc.addImage(opts.logoDataUrl, "PNG", logoX, logoY, logoW, logoH);
     }
-    doc.setFont("helvetica","bold"); doc.setFontSize(22); doc.setTextColor(20,20,20);
-    doc.text("Material Gradation Report", margin+1.25, y+0.5);
-    y += 0.85;
+    doc.setFont("helvetica","bold"); doc.setFontSize(22); doc.setTextColor(0,0,0);
+    doc.text("Material Gradation Report", pageW/2, logoY + logoH/2 + 0.08, {align:"center"});
+    y = logoY + logoH + 0.15;
 
     sectionBar("Product Details");
     doc.setFontSize(9.5);
+    const fieldValueX = margin + 0.75; // matches the 0.75" tab stop used in the Word template
     const lines = [
       ["Name: ", opts.product],
       ["Source: ", opts.quarry + " Quarry"],
@@ -1480,22 +1490,29 @@
     ];
     y += 0.16;
     lines.forEach(function(pair){
-      const label = pair[0], value = pair[1];
       doc.setFont("helvetica","normal"); doc.setTextColor(20,20,20);
-      doc.text(label, margin, y);
+      doc.text(pair[0], margin, y);
       doc.setFont("helvetica","bold");
-      doc.text(String(value), margin + doc.getTextWidth(label), y);
+      doc.text(String(pair[1]), fieldValueX, y);
       y += 0.19;
     });
     y += 0.08;
+    closeSectionBox();
 
     sectionBar("Gradation Curve");
-    const chartH = 3.75;
-    drawChartPdf(doc, margin, y, contentW, chartH, opts.sieves, opts.stats, opts.specs, opts.showSpec, opts.showMinMax);
+    const chartW = contentW * 0.70; // ~30% smaller than full width
+    const chartH = chartW / 2;      // keep the 2:1 aspect ratio
+    const chartX = margin + (contentW - chartW) / 2; // centered
+    drawChartPdf(doc, chartX, y, chartW, chartH, opts.sieves, opts.stats, opts.specs, opts.showSpec, opts.showMinMax);
     y += chartH + 0.05;
-    doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
-    doc.text("Data covers " + opts.captionSuffix + ".", margin, y);
-    y += 0.22;
+    if (!opts.selectedDaysOnly){
+      doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
+      doc.text("Data covers entire sampling period.", margin, y);
+      y += 0.22;
+    } else {
+      y += 0.06;
+    }
+    closeSectionBox();
 
     sectionBar("Recent Tests");
     y += 0.12;
@@ -1532,11 +1549,15 @@
       y += rowH;
     });
 
-    newPageIfNeeded(rowH*2);
-    doc.setDrawColor.apply(doc, KRAEMER_RED); doc.setLineWidth(0.012);
+    if (newPageIfNeeded(rowH*2)){
+      sectionBar("Recent Tests (continued)");
+      y += 0.12;
+      drawTableHeader();
+    }
+    doc.setDrawColor(0,0,0); doc.setLineWidth(0.014);
     doc.line(margin, y-0.11, margin+contentW, y-0.11);
     doc.setFont("helvetica","bold"); doc.setFontSize(8);
-    doc.setTextColor.apply(doc, KRAEMER_RED);
+    doc.setTextColor(0,0,0);
     doc.text("Average", margin, y);
     sieves.forEach(function(s,i){
       const v = opts.stats.avg[s.key];
@@ -1544,14 +1565,20 @@
       doc.text(text, margin+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
     });
     y += rowH + 0.02;
-    doc.setFont("helvetica","italic"); doc.setFontSize(7.5); doc.setTextColor(107,113,117);
-    doc.text("Average is over " + opts.captionSuffix + ".", margin, y);
-    y += 0.24;
+    if (!opts.selectedDaysOnly){
+      doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
+      doc.text("Averages are over entire sampling period.", margin, y);
+      y += 0.22;
+    } else {
+      y += 0.06;
+    }
+    closeSectionBox();
 
     sectionBar("Comments");
     y += 0.16;
     doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(20,20,20);
-    const commentLines = doc.splitTextToSize(opts.comments || "\u2014", contentW);
+    const commentText = (opts.comments && opts.comments.trim()) ? opts.comments : "N/A";
+    const commentLines = doc.splitTextToSize(commentText, contentW);
     commentLines.forEach(function(line){
       if (newPageIfNeeded(0.18)){
         sectionBar("Comments (continued)");
@@ -1560,6 +1587,7 @@
       doc.text(line, margin, y);
       y += 0.16;
     });
+    closeSectionBox();
 
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++){
@@ -1571,22 +1599,72 @@
     return doc;
   }
 
-  /* ---- G&B-104 Excel: surgical cell edit, preserving every byte outside the 4 target cells ---- */
-  function xlsxSetTextCell(xml, coord, text){
-    const re = new RegExp('<c r="' + coord + '"([^>]*)/>');
-    const m = xml.match(re);
-    if (!m) throw new Error("Cell " + coord + " was not found as an empty cell in the template — the template structure may have changed.");
-    const attrs = m[1];
-    const replacement = '<c r="' + coord + '"' + attrs + ' t="inlineStr"><is><t xml:space="preserve">' + escapeXml(text) + '</t></is></c>';
-    return xml.replace(re, replacement);
+  /* ---- G&B-104 Excel: surgical cell edit, preserving every byte outside the target cells ---- */
+  function xlsxColToNum(col){
+    let n = 0;
+    for (let i = 0; i < col.length; i++) n = n * 26 + (col.charCodeAt(i) - 64);
+    return n;
   }
-  function xlsxSetNumberCell(xml, coord, num){
-    const re = new RegExp('<c r="' + coord + '"([^>]*)/>');
-    const m = xml.match(re);
-    if (!m) throw new Error("Cell " + coord + " was not found as an empty cell in the template — the template structure may have changed.");
-    const attrs = m[1];
-    const replacement = '<c r="' + coord + '"' + attrs + '><v>' + num + '</v></c>';
-    return xml.replace(re, replacement);
+  function xlsxSplitCoord(coord){
+    const m = coord.match(/^([A-Z]+)(\d+)$/);
+    return {col: m[1], row: parseInt(m[2], 10), colNum: xlsxColToNum(m[1])};
+  }
+  // Some target cells don't exist in the sheet's sparse XML at all (Excel omits genuinely blank,
+  // unstyled cells). When that happens, insert a new <c> element in the correct column position
+  // within its <row>, optionally borrowing a style index from a similar reference cell.
+  function xlsxInsertCellIntoRow(xml, coord, cellXmlBuilder, fallbackStyleFromCoord){
+    const target = xlsxSplitCoord(coord);
+    const rowRe = new RegExp('(<row r="' + target.row + '"[^>]*>)([\\s\\S]*?)(</row>)');
+    const rowMatch = xml.match(rowRe);
+    if (!rowMatch) throw new Error("Row " + target.row + " was not found in the template — cannot place cell " + coord + ".");
+    const rowOpen = rowMatch[1], rowInner = rowMatch[2], rowClose = rowMatch[3];
+
+    let styleAttr = "";
+    if (fallbackStyleFromCoord){
+      const fm = xml.match(new RegExp('<c r="' + fallbackStyleFromCoord + '"[^>]*\\bs="(\\d+)"'));
+      if (fm) styleAttr = ' s="' + fm[1] + '"';
+    }
+    const newCellXml = cellXmlBuilder(styleAttr);
+
+    const cellRe = /<c r="([A-Z]+)(\d+)"[^>]*?(?:\/>|>[\s\S]*?<\/c>)/g;
+    let insertBefore = null, cm;
+    while ((cm = cellRe.exec(rowInner)) !== null){
+      if (xlsxColToNum(cm[1]) > target.colNum){ insertBefore = cm[0]; break; }
+    }
+    const newRowInner = insertBefore ? rowInner.replace(insertBefore, newCellXml + insertBefore) : (rowInner + newCellXml);
+    return xml.replace(rowRe, rowOpen + newRowInner + rowClose);
+  }
+  function xlsxSetTextCell(xml, coord, text, fallbackStyleFromCoord){
+    let re = new RegExp('<c r="' + coord + '"([^>]*)/>');
+    let m = xml.match(re);
+    if (m){
+      return xml.replace(re, '<c r="' + coord + '"' + m[1] + ' t="inlineStr"><is><t xml:space="preserve">' + escapeXml(text) + '</t></is></c>');
+    }
+    re = new RegExp('<c r="' + coord + '"([^>]*)>[\\s\\S]*?</c>');
+    m = xml.match(re);
+    if (m){
+      const attrs = m[1].replace(/\s+t="[^"]*"/, "");
+      return xml.replace(re, '<c r="' + coord + '"' + attrs + ' t="inlineStr"><is><t xml:space="preserve">' + escapeXml(text) + '</t></is></c>');
+    }
+    return xlsxInsertCellIntoRow(xml, coord, function(styleAttr){
+      return '<c r="' + coord + '"' + styleAttr + ' t="inlineStr"><is><t xml:space="preserve">' + escapeXml(text) + '</t></is></c>';
+    }, fallbackStyleFromCoord);
+  }
+  function xlsxSetNumberCell(xml, coord, num, fallbackStyleFromCoord){
+    let re = new RegExp('<c r="' + coord + '"([^>]*)/>');
+    let m = xml.match(re);
+    if (m){
+      return xml.replace(re, '<c r="' + coord + '"' + m[1] + '><v>' + num + '</v></c>');
+    }
+    re = new RegExp('<c r="' + coord + '"([^>]*)>[\\s\\S]*?</c>');
+    m = xml.match(re);
+    if (m){
+      const attrs = m[1].replace(/\s+t="[^"]*"/, "");
+      return xml.replace(re, '<c r="' + coord + '"' + attrs + '><v>' + num + '</v></c>');
+    }
+    return xlsxInsertCellIntoRow(xml, coord, function(styleAttr){
+      return '<c r="' + coord + '"' + styleAttr + '><v>' + num + '</v></c>';
+    }, fallbackStyleFromCoord);
   }
 
   let gb104DriveId = null;
@@ -1636,9 +1714,9 @@
     if (!sheetFile) throw new Error("Could not find " + sheetPath + " inside the template.");
     let sheetXml = await sheetFile.async("string");
     sheetXml = xlsxSetTextCell(sheetXml, "A14", generatedBy);
-    sheetXml = xlsxSetTextCell(sheetXml, "A16", generatedBy);
-    sheetXml = xlsxSetTextCell(sheetXml, "I16", generatedDateText);
-    sheetXml = xlsxSetNumberCell(sheetXml, "L19", testDayCount);
+    sheetXml = xlsxSetTextCell(sheetXml, "A17", generatedBy, "A14");
+    sheetXml = xlsxSetTextCell(sheetXml, "I17", generatedDateText);
+    sheetXml = xlsxSetNumberCell(sheetXml, "L20", testDayCount);
     zip.file(sheetPath, sheetXml);
     const out = await zip.generateAsync({type:"blob"});
     downloadBlob(out, "GB104_" + certCode.toUpperCase() + "_" + generatedDateText.replace(/\//g,"-") + ".xlsx");
@@ -1666,8 +1744,14 @@
     try {
       const st = lastRenderState;
       const sampleTypeText = ["Production","Loadout","Other"].filter(t => selectedSampleTypes[t]).join(", ") || "—";
-      const periodText = st.chartSelectedDaysOnly ? "Selected Test Days" : (fmtDate(displayStart) + " – " + fmtDate(displayEnd));
-      const captionSuffix = st.chartSelectedDaysOnly ? "selected test days" : "entire date range";
+      let periodText;
+      if (st.chartSelectedDaysOnly){
+        periodText = st.includedDayAverages.length
+          ? (fmtDate(st.includedDayAverages[0].date) + " – " + fmtDate(st.includedDayAverages[st.includedDayAverages.length-1].date))
+          : "Selected Test Days";
+      } else {
+        periodText = fmtDate(displayStart) + " – " + fmtDate(displayEnd);
+      }
       const generatedBy = (activeAccount && (activeAccount.name || activeAccount.username)) || "Unknown";
       const generatedDate = fmtDate(new Date());
       const productLabel = getProductDisplayName() || "—";
@@ -1687,7 +1771,7 @@
         comments: $("reportComments").value,
         generatedBy: generatedBy,
         generatedDate: generatedDate,
-        captionSuffix: captionSuffix
+        selectedDaysOnly: st.chartSelectedDaysOnly
       });
       const pdfFilename = "Gradation_Report_" + sanitizeFilenamePart(selectedQuarry) + "_" +
         sanitizeFilenamePart(productLabel) + "_" + sanitizeFilenamePart(generatedDate.replace(/\//g,"-")) + ".pdf";
