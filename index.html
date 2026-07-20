@@ -441,7 +441,11 @@
         <textarea id="reportComments" placeholder="Notes to include on the generated report…" style="margin-top:6px;"></textarea>
       </div>
       <div class="generate-panel">
-        <button class="primary" id="generateBtn">Generate Report</button>
+        <div class="toggles" id="reportSelect">
+          <label><input type="checkbox" id="genGradationReport" checked> Gradation Report</label>
+          <label><input type="checkbox" id="genCertOfAgg" checked> Cert of Agg</label>
+        </div>
+        <button class="primary" id="generateBtn">Generate Report(s)</button>
         <span class="hint" id="generateHint"></span>
       </div>
     </div>
@@ -1318,7 +1322,7 @@
 
   function drawChartPdf(doc, x0, y0, w, h, sieves, stats, specs, showSpecFlag, showMinMaxFlag){
     const scale = w / 1000; // chart is always drawn 2:1, matching the on-screen 1000x500 viewBox
-    const mL = 54*scale, mR = 24*scale, mT = 66*scale, mB = 44*scale;
+    const mL = 54*scale, mR = 24*scale, mT = 66*scale, mB = 74*scale;
     const plotW = w - mL - mR, plotH = h - mT - mB;
     if (!sieves.length){
       doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(140,140,140);
@@ -1437,6 +1441,36 @@
       doc.setFillColor.apply(doc, KRAEMER_RED);
       pts.forEach(p => doc.circle(p[0], p[1], 0.028, "F"));
     }
+
+    // legend: top-right of the plot area, only listing lines that are actually shown
+    {
+      const entries = [{label:"Average", dashed:false, color:KRAEMER_RED}];
+      if (showMinMaxFlag) entries.push({label:"Min/Max", dashed:false, color:[20,20,20]});
+      if (showSpecFlag) entries.push({label:"Spec", dashed:true, color:[107,113,117]});
+
+      const swatchW = 0.22, rowH = 0.14, pad = 0.06;
+      doc.setFont("helvetica","normal"); doc.setFontSize(7);
+      const textW = Math.max.apply(null, entries.map(e => doc.getTextWidth(e.label)));
+      const legendW = swatchW + 0.06 + textW + pad*2;
+      const legendH = entries.length*rowH + pad*2;
+      const legendX = x0 + w - mR - legendW - 0.06;
+      const legendY = y0 + mT + 0.06;
+
+      doc.setFillColor(255,255,255); doc.setDrawColor(190,190,190); doc.setLineWidth(0.006);
+      doc.rect(legendX, legendY, legendW, legendH, "FD");
+
+      entries.forEach((e, i) => {
+        const rowY = legendY + pad + i*rowH + rowH/2;
+        const lx1 = legendX + pad, lx2 = lx1 + swatchW;
+        doc.setDrawColor.apply(doc, e.color);
+        doc.setLineWidth(e.dashed ? 0.011 : 0.02);
+        if (e.dashed) doc.setLineDashPattern([0.025,0.02], 0);
+        doc.line(lx1, rowY, lx2, rowY);
+        if (e.dashed) doc.setLineDashPattern([], 0);
+        doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(20,20,20);
+        doc.text(e.label, lx2+0.06, rowY+0.025);
+      });
+    }
   }
 
   function buildReportPdf(opts){
@@ -1479,9 +1513,11 @@
     doc.text("Material Gradation Report", pageW/2, logoY + logoH/2 + 0.08, {align:"center"});
     y = logoY + logoH + 0.15;
 
+    const contentLeft = margin + 0.08; // same inset as the section header label
+
     sectionBar("Product Details");
     doc.setFontSize(9.5);
-    const fieldValueX = margin + 0.75; // matches the 0.75" tab stop used in the Word template
+    const fieldValueX = margin + 0.75; // matches the 0.75" tab stop used in the Word template, measured from the table edge
     const lines = [
       ["Name: ", opts.product],
       ["Source: ", opts.quarry + " Quarry"],
@@ -1491,7 +1527,7 @@
     y += 0.16;
     lines.forEach(function(pair){
       doc.setFont("helvetica","normal"); doc.setTextColor(20,20,20);
-      doc.text(pair[0], margin, y);
+      doc.text(pair[0], contentLeft, y);
       doc.setFont("helvetica","bold");
       doc.text(String(pair[1]), fieldValueX, y);
       y += 0.19;
@@ -1507,7 +1543,7 @@
     y += chartH + 0.05;
     if (!opts.selectedDaysOnly){
       doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
-      doc.text("Data covers entire sampling period.", margin, y);
+      doc.text("Data covers entire sampling period.", contentLeft, y);
       y += 0.22;
     } else {
       y += 0.06;
@@ -1518,16 +1554,17 @@
     y += 0.12;
     const sieves = opts.sieves;
     const dateColW = 0.9;
-    const sieveColW = sieves.length ? Math.min(0.55, (contentW - dateColW) / sieves.length) : 0.55;
+    const sieveColW = sieves.length ? Math.min(0.55, (contentW - 0.08 - dateColW) / sieves.length) : 0.55;
     const rowH = 0.17;
+    const tableRight = contentLeft + dateColW + sieves.length*sieveColW;
 
     function drawTableHeader(){
       doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(69,75,78);
-      doc.text("Sample Date", margin, y);
-      sieves.forEach(function(s,i){ doc.text(s.label, margin+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"}); });
+      doc.text("Sample Date", contentLeft, y);
+      sieves.forEach(function(s,i){ doc.text(s.label, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"}); });
       y += 0.03;
       doc.setDrawColor(160,160,160); doc.setLineWidth(0.007);
-      doc.line(margin, y, margin+contentW, y);
+      doc.line(contentLeft, y, tableRight, y);
       y += 0.13;
     }
     drawTableHeader();
@@ -1540,11 +1577,11 @@
         drawTableHeader();
       }
       doc.setTextColor(20,20,20);
-      doc.text(fmtDate(d.date), margin, y);
+      doc.text(fmtDate(d.date), contentLeft, y);
       sieves.forEach(function(s,i){
         const v = d.values[s.key];
         const text = (v === null || v === undefined) ? "\u2014" : v.toFixed(1);
-        doc.text(text, margin+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
+        doc.text(text, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
       });
       y += rowH;
     });
@@ -1555,19 +1592,19 @@
       drawTableHeader();
     }
     doc.setDrawColor(0,0,0); doc.setLineWidth(0.014);
-    doc.line(margin, y-0.11, margin+contentW, y-0.11);
+    doc.line(contentLeft, y-0.11, tableRight, y-0.11);
     doc.setFont("helvetica","bold"); doc.setFontSize(8);
     doc.setTextColor(0,0,0);
-    doc.text("Average", margin, y);
+    doc.text("Average", contentLeft, y);
     sieves.forEach(function(s,i){
       const v = opts.stats.avg[s.key];
       const text = (v === null || v === undefined) ? "\u2014" : v.toFixed(1);
-      doc.text(text, margin+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
+      doc.text(text, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
     });
     y += rowH + 0.02;
     if (!opts.selectedDaysOnly){
       doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
-      doc.text("Averages are over entire sampling period.", margin, y);
+      doc.text("Averages are over entire sampling period.", contentLeft, y);
       y += 0.22;
     } else {
       y += 0.06;
@@ -1578,13 +1615,13 @@
     y += 0.16;
     doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(20,20,20);
     const commentText = (opts.comments && opts.comments.trim()) ? opts.comments : "N/A";
-    const commentLines = doc.splitTextToSize(commentText, contentW);
+    const commentLines = doc.splitTextToSize(commentText, contentW - 0.08);
     commentLines.forEach(function(line){
       if (newPageIfNeeded(0.18)){
         sectionBar("Comments (continued)");
         y += 0.16;
       }
-      doc.text(line, margin, y);
+      doc.text(line, contentLeft, y);
       y += 0.16;
     });
     closeSectionBox();
@@ -1736,10 +1773,13 @@
 
   async function generateReport(){
     if (!lastRenderState){ showError("Nothing to generate yet — data is still loading."); return; }
+    const wantGradation = $("genGradationReport").checked;
+    const wantCert = $("genCertOfAgg").checked;
+    if (!wantGradation && !wantCert){ showError("Select at least one report to generate."); return; }
+
     const btn = $("generateBtn"), hint = $("generateHint");
     const originalHint = hint.textContent;
     btn.disabled = true;
-    hint.textContent = "Building PDF…";
     clearError();
     try {
       const st = lastRenderState;
@@ -1756,31 +1796,38 @@
       const generatedDate = fmtDate(new Date());
       const productLabel = getProductDisplayName() || "—";
 
-      const doc = buildReportPdf({
-        logoDataUrl: "data:image/png;base64," + KRAEMER_LOGO_BASE64,
-        quarry: selectedQuarry || "—",
-        product: productLabel,
-        sampleTypeText: sampleTypeText,
-        periodText: periodText,
-        sieves: st.sieves,
-        stats: st.stats,
-        specs: st.specs,
-        showSpec: st.showSpec,
-        showMinMax: st.showMinMax,
-        includedDayAverages: st.includedDayAverages,
-        comments: $("reportComments").value,
-        generatedBy: generatedBy,
-        generatedDate: generatedDate,
-        selectedDaysOnly: st.chartSelectedDaysOnly
-      });
-      const pdfFilename = "Gradation_Report_" + sanitizeFilenamePart(selectedQuarry) + "_" +
-        sanitizeFilenamePart(productLabel) + "_" + sanitizeFilenamePart(generatedDate.replace(/\//g,"-")) + ".pdf";
-      doc.save(pdfFilename);
+      if (wantGradation){
+        hint.textContent = "Building PDF…";
+        const doc = buildReportPdf({
+          logoDataUrl: "data:image/png;base64," + KRAEMER_LOGO_BASE64,
+          quarry: selectedQuarry || "—",
+          product: productLabel,
+          sampleTypeText: sampleTypeText,
+          periodText: periodText,
+          sieves: st.sieves,
+          stats: st.stats,
+          specs: st.specs,
+          showSpec: st.showSpec,
+          showMinMax: st.showMinMax,
+          includedDayAverages: st.includedDayAverages,
+          comments: $("reportComments").value,
+          generatedBy: generatedBy,
+          generatedDate: generatedDate,
+          selectedDaysOnly: st.chartSelectedDaysOnly
+        });
+        const pdfFilename = "Gradation_Report_" + sanitizeFilenamePart(selectedQuarry) + "_" +
+          sanitizeFilenamePart(productLabel) + "_" + sanitizeFilenamePart(generatedDate.replace(/\//g,"-")) + ".pdf";
+        doc.save(pdfFilename);
+      }
 
-      const certLetter = st.productFields ? String(st.productFields.CertOfAgg || "").trim() : "";
-      if (certLetter){
-        hint.textContent = "Fetching G&B-104 template…";
-        await generateGB104Excel(certLetter, generatedBy, generatedDate, st.includedDayAverages.length);
+      if (wantCert){
+        const certLetter = st.productFields ? String(st.productFields.CertOfAgg || "").trim() : "";
+        if (!certLetter){
+          showError("This product does not have an associated Cert of Agg.");
+        } else {
+          hint.textContent = "Fetching G&B-104 template…";
+          await generateGB104Excel(certLetter, generatedBy, generatedDate, st.includedDayAverages.length);
+        }
       }
       hint.textContent = originalHint;
     } catch(e){
