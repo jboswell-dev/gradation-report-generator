@@ -1557,8 +1557,8 @@
     sectionBar("Recent Tests");
     y += 0.12;
     const sieves = opts.sieves;
-    const dateColW = 0.9;
-    const sieveColW = sieves.length ? Math.min(0.55, (contentW - 0.08 - dateColW) / sieves.length) : 0.55;
+    const dateColW = 0.9 * 0.8;
+    const sieveColW = sieves.length ? Math.min(0.55, (contentW - 0.08 - dateColW) / sieves.length) * 0.8 : 0.55 * 0.8;
     const rowH = 0.17;
     const tableRight = contentLeft + dateColW + sieves.length*sieveColW;
 
