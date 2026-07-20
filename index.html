@@ -333,6 +333,12 @@
     min-width:220px;
   }
   .generate-panel .hint{font-size:10.5px;color:var(--ink-faint);text-align:right;}
+  .report-checkbox{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--ink);cursor:pointer;
+  }
+  .report-checkbox input{accent-color:var(--rust);}
+  #generateBtn{font-size:15px;padding:9px 26px;}
 </style>
 </head>
 <body>
@@ -441,11 +447,9 @@
         <textarea id="reportComments" placeholder="Notes to include on the generated report…" style="margin-top:6px;"></textarea>
       </div>
       <div class="generate-panel">
-        <div class="toggles" id="reportSelect">
-          <label><input type="checkbox" id="genGradationReport" checked> Gradation Report</label>
-          <label><input type="checkbox" id="genCertOfAgg" checked> Cert of Agg</label>
-        </div>
-        <button class="primary" id="generateBtn">Generate Report(s)</button>
+        <label class="report-checkbox"><input type="checkbox" id="genGradationReport" checked> Gradation Report</label>
+        <label class="report-checkbox"><input type="checkbox" id="genCertOfAgg" checked> Cert of Agg</label>
+        <button class="primary" id="generateBtn">Generate</button>
         <span class="hint" id="generateHint"></span>
       </div>
     </div>
@@ -1442,7 +1446,7 @@
       pts.forEach(p => doc.circle(p[0], p[1], 0.028, "F"));
     }
 
-    // legend: top-right of the plot area, only listing lines that are actually shown
+    // legend: outside the chart, to the right of it, at the same vertical position as before
     {
       const entries = [{label:"Average", dashed:false, color:KRAEMER_RED}];
       if (showMinMaxFlag) entries.push({label:"Min/Max", dashed:false, color:[20,20,20]});
@@ -1453,7 +1457,7 @@
       const textW = Math.max.apply(null, entries.map(e => doc.getTextWidth(e.label)));
       const legendW = swatchW + 0.06 + textW + pad*2;
       const legendH = entries.length*rowH + pad*2;
-      const legendX = x0 + w - mR - legendW - 0.06;
+      const legendX = x0 + w + 0.15;
       const legendY = y0 + mT + 0.06;
 
       doc.setFillColor(255,255,255); doc.setDrawColor(190,190,190); doc.setLineWidth(0.006);
@@ -1540,13 +1544,13 @@
     const chartH = chartW / 2;      // keep the 2:1 aspect ratio
     const chartX = margin + (contentW - chartW) / 2; // centered
     drawChartPdf(doc, chartX, y, chartW, chartH, opts.sieves, opts.stats, opts.specs, opts.showSpec, opts.showMinMax);
-    y += chartH + 0.05;
+    y += chartH + 0.19;
     if (!opts.selectedDaysOnly){
       doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
       doc.text("Data covers entire sampling period.", contentLeft, y);
-      y += 0.22;
+      y += 0.08;
     } else {
-      y += 0.06;
+      y += 0.08;
     }
     closeSectionBox();
 
@@ -1601,13 +1605,13 @@
       const text = (v === null || v === undefined) ? "\u2014" : v.toFixed(1);
       doc.text(text, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
     });
-    y += rowH + 0.02;
+    y += rowH + 0.16;
     if (!opts.selectedDaysOnly){
       doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
       doc.text("Averages are over entire sampling period.", contentLeft, y);
-      y += 0.22;
+      y += 0.08;
     } else {
-      y += 0.06;
+      y += 0.08;
     }
     closeSectionBox();
 
@@ -1743,7 +1747,7 @@
     return res.arrayBuffer();
   }
 
-  async function generateGB104Excel(certCode, generatedBy, generatedDateText, testDayCount){
+  async function generateGB104Excel(certCode, quarry, product, generatedBy, generatedDateText, testDayCount){
     const templateBytes = await fetchGB104TemplateBytes(certCode);
     const zip = await JSZip.loadAsync(templateBytes);
     const sheetPath = "xl/worksheets/sheet1.xml";
@@ -1756,7 +1760,8 @@
     sheetXml = xlsxSetNumberCell(sheetXml, "L20", testDayCount);
     zip.file(sheetPath, sheetXml);
     const out = await zip.generateAsync({type:"blob"});
-    downloadBlob(out, "GB104_" + certCode.toUpperCase() + "_" + generatedDateText.replace(/\//g,"-") + ".xlsx");
+    const dateForFilename = generatedDateText.replace(/\//g, "-");
+    downloadBlob(out, sanitizeFilenamePart("Cert of Agg " + quarry + " " + product + " " + dateForFilename) + ".xlsx");
   }
 
   function downloadBlob(blob, filename){
@@ -1826,7 +1831,7 @@
           showError("This product does not have an associated Cert of Agg.");
         } else {
           hint.textContent = "Fetching G&B-104 template…";
-          await generateGB104Excel(certLetter, generatedBy, generatedDate, st.includedDayAverages.length);
+          await generateGB104Excel(certLetter, selectedQuarry || "—", productLabel, generatedBy, generatedDate, st.includedDayAverages.length);
         }
       }
       hint.textContent = originalHint;
