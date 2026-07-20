@@ -329,16 +329,16 @@
   .generate-panel{
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:12px 14px;box-shadow:var(--shadow);
-    display:flex;flex-direction:column;gap:6px;align-items:flex-end;
-    min-width:220px;
+    display:flex;flex-direction:column;gap:6px;align-items:flex-start;
+    width:fit-content;
   }
-  .generate-panel .hint{font-size:10.5px;color:var(--ink-faint);text-align:right;}
+  .generate-panel .hint{font-size:10.5px;color:var(--ink-faint);text-align:right;align-self:flex-end;}
   .report-checkbox{
     display:flex;align-items:center;gap:6px;
     font-size:12px;color:var(--ink);cursor:pointer;
   }
   .report-checkbox input{accent-color:var(--rust);}
-  #generateBtn{font-size:15px;padding:9px 26px;}
+  #generateBtn{font-size:13px;padding:8px 22px;align-self:center;}
 </style>
 </head>
 <body>
@@ -449,7 +449,7 @@
       <div class="generate-panel">
         <label class="report-checkbox"><input type="checkbox" id="genGradationReport" checked> Gradation Report</label>
         <label class="report-checkbox"><input type="checkbox" id="genCertOfAgg" checked> Cert of Agg</label>
-        <button class="primary" id="generateBtn">Generate</button>
+        <button class="primary" id="generateBtn">Generate Report(s)</button>
         <span class="hint" id="generateHint"></span>
       </div>
     </div>
