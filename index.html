@@ -1341,13 +1341,24 @@
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
+    // Decide which optional columns to show based on whether any test has a value
+    const showNotes        = tests.some(t => t.Notes && String(t.Notes).trim() !== "");
+    const showCoarseMoist  = tests.some(t => t.CoarseMoisturePct !== undefined && t.CoarseMoisturePct !== null && String(t.CoarseMoisturePct).trim() !== "");
+    const showFineMoist    = tests.some(t => t.FineMoisturePct   !== undefined && t.FineMoisturePct   !== null && String(t.FineMoisturePct).trim()   !== "");
+
+    const fixedColCount = 2; // Incl. + Date
+    const optionalColCount = (showNotes ? 1 : 0) + (showCoarseMoist ? 1 : 0) + (showFineMoist ? 1 : 0);
+    const totalCols = fixedColCount + sieves.length + optionalColCount;
+
     thead.innerHTML =
       '<th class="left">Incl.</th><th class="left">Date</th>' +
       sieves.map(s => '<th class="center">' + escapeXml(s.label) + '</th>').join("") +
-      '<th class="left">Notes</th>';
+      (showNotes       ? '<th class="left">Notes</th>'            : "") +
+      (showCoarseMoist ? '<th class="center">Coarse Moist.</th>'  : "") +
+      (showFineMoist   ? '<th class="center">Fine Moist.</th>'    : "");
 
     if (!tests.length){
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (sieves.length+3) + '">No tests in this range.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + totalCols + '">No tests in this range.</td></tr>';
       return;
     }
 
@@ -1379,11 +1390,29 @@
         tr.appendChild(td);
       });
 
-      const tdNotes = document.createElement("td");
-      tdNotes.className = "notes-cell";
-      tdNotes.title = t.Notes || "";
-      tdNotes.textContent = t.Notes || "";
-      tr.appendChild(tdNotes);
+      if (showNotes){
+        const tdNotes = document.createElement("td");
+        tdNotes.className = "notes-cell";
+        tdNotes.title = t.Notes || "";
+        tdNotes.textContent = t.Notes || "";
+        tr.appendChild(tdNotes);
+      }
+
+      if (showCoarseMoist){
+        const td = document.createElement("td");
+        td.className = "center";
+        const v = t.CoarseMoisturePct;
+        td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
+        tr.appendChild(td);
+      }
+
+      if (showFineMoist){
+        const td = document.createElement("td");
+        td.className = "center";
+        const v = t.FineMoisturePct;
+        td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
+        tr.appendChild(td);
+      }
 
       tbody.appendChild(tr);
     });
