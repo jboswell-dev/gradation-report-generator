@@ -508,6 +508,7 @@
     {key:"Coarse_6in",     mm:152.4,  label:'6"'},
     {key:"Coarse_4in",     mm:101.6,  label:'4"'},
     {key:"Coarse_3in",     mm:76.2,   label:'3"'},
+    {key:"Coarse_2_1_2in", mm:63.5,   label:'2-1/2"'},
     {key:"Coarse_2in",     mm:50.8,   label:'2"'},
     {key:"Coarse_1_7_8in", mm:47.6,   label:'1-7/8"'},
     {key:"Coarse_1_1_2in", mm:38.1,   label:'1-1/2"'},
@@ -843,14 +844,36 @@
   }
 
   function refreshProductOptions(){
-    productsForQuarry = products.filter(p => p.Quarry === selectedQuarry &&
-      (p.Active === undefined || p.Active === null || p.Active === true || p.Active === "1" || p.Active === "Yes"));
-    if (!productsForQuarry.length) productsForQuarry = products.filter(p => p.Quarry === selectedQuarry);
-    const names = productsForQuarry.map(p => p.Title).filter(Boolean);
+    // Active non-custom products for this quarry
+    let quarryProducts = products.filter(p => p.Quarry === selectedQuarry &&
+      (p.Active === undefined || p.Active === null || p.Active === true || p.Active === "1" || p.Active === "Yes") &&
+      !p.IsCustomProduct);
+    if (!quarryProducts.length) quarryProducts = products.filter(p => p.Quarry === selectedQuarry && !p.IsCustomProduct);
+
+    // Sort by DisplayOrder (numeric), nulls/missing/non-numeric go at the bottom
+    quarryProducts = quarryProducts.slice().sort((a, b) => {
+      const oa = parseFloat(a.DisplayOrder);
+      const ob = parseFloat(b.DisplayOrder);
+      const ha = isNaN(oa), hb = isNaN(ob);
+      if (ha && hb) return 0;
+      if (ha) return 1;
+      if (hb) return -1;
+      return oa - ob;
+    });
+
+    // Also include products from the cache that aren't in the products list at all
+    const listedTitles = new Set(quarryProducts.map(p => p.Title).filter(Boolean));
+    const cacheProducts = allTests
+      .filter(t => t.Quarry === selectedQuarry && t.Product && !t.IsCustomProduct && !listedTitles.has(t.Product))
+      .map(t => t.Product);
+    const extraTitles = Array.from(new Set(cacheProducts));
+
+    const names = quarryProducts.map(p => p.Title).filter(Boolean).concat(extraTitles);
     populateSelect($("productSelect"), names);
+
     const customOpt = document.createElement("option");
     customOpt.value = "__CUSTOM__";
-    customOpt.textContent = "Custom…";
+    customOpt.textContent = "Custom Product";
     $("productSelect").appendChild(customOpt);
 
     productMode = "single";
@@ -952,24 +975,56 @@
      DATA MODEL — filtering, day-averaging, stats
      ================================================================ */
   function getCurrentProductFields(){
-    return productsForQuarry.find(p => p.Title === selectedProduct) || null;
+    if (!selectedProduct || !selectedQuarry) return null;
+    return products.find(p => p.Quarry === selectedQuarry && p.Title === selectedProduct) || null;
   }
 
   function getSievesForProduct(productFields){
     if (!productFields) return [];
-    return SIEVE_DEFS.filter(s => {
+    // Start with all SIEVE_DEFS keys that have a spec value in this product row
+    const knownKeys = new Set(SIEVE_DEFS.map(s => s.key));
+    const known = SIEVE_DEFS.filter(s => {
       const v = productFields[s.key];
       return v !== undefined && v !== null && String(v).trim() !== "";
     });
+    // Also pick up any Coarse_* or Fine_* fields on the product row that aren't
+    // in SIEVE_DEFS yet — so adding a new sieve column to SharePoint just works.
+    const unknown = [];
+    Object.keys(productFields).forEach(k => {
+      if (!knownKeys.has(k) && /^(Coarse|Fine)_/.test(k)){
+        const v = productFields[k];
+        if (v !== undefined && v !== null && String(v).trim() !== ""){
+          unknown.push({key: k, mm: null, label: k});
+        }
+      }
+    });
+    // Sort unknowns by mm if we can infer it; otherwise they go at the end
+    return known.concat(unknown);
   }
 
   // Custom products have no Gradation_Products spec row, so "which sieves apply" is derived from
   // whichever sieve columns actually have values in the matching test rows themselves.
   function getSievesFromTests(tests){
-    return SIEVE_DEFS.filter(s => tests.some(t => {
+    const knownKeys = new Set(SIEVE_DEFS.map(s => s.key));
+    const known = SIEVE_DEFS.filter(s => tests.some(t => {
       const v = t[s.key + "_Pct"];
       return v !== undefined && v !== null && String(v).trim() !== "";
     }));
+    // Also pick up any Coarse_*_Pct or Fine_*_Pct columns not in SIEVE_DEFS yet
+    const unknownKeys = new Set();
+    tests.forEach(t => {
+      Object.keys(t).forEach(col => {
+        const m = col.match(/^((?:Coarse|Fine)_.+)_Pct$/);
+        if (m && !knownKeys.has(m[1])){
+          const v = t[col];
+          if (v !== undefined && v !== null && String(v).trim() !== ""){
+            unknownKeys.add(m[1]);
+          }
+        }
+      });
+    });
+    const unknown = Array.from(unknownKeys).map(k => ({key: k, mm: null, label: k}));
+    return known.concat(unknown);
   }
 
   function testsInDateRange(start, end){
