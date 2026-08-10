@@ -1,6 +1,6 @@
 {
-  "name": "Gradation Report Generator",
-  "short_name": "Gradation",
+  "name": "Quality Viewer",
+  "short_name": "Quality",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
