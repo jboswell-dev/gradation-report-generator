@@ -439,6 +439,82 @@
   }
   .report-checkbox input{accent-color:var(--rust);}
   #generateBtn{font-size:13px;padding:8px 22px;align-self:center;}
+
+  /* ---------- Time Series tab ---------- */
+  #paneTimeSeries input[type="text"]{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink);
+    border:1px solid var(--line-strong);border-radius:var(--radius);background:#fff;padding:6px 8px;
+  }
+  #paneTimeSeries input[type="color"]{
+    width:34px;height:24px;padding:0;border:1px solid var(--line-strong);
+    border-radius:var(--radius);background:#fff;cursor:pointer;
+  }
+  .ts-hint{font-size:10.5px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;}
+  .ts-addbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .ts-addbar select{min-width:auto;font-size:11px;padding:4px 6px;}
+  .ts-segbtn{display:flex;}
+  .ts-segbtn button{border-radius:0;margin-left:-1px;font-size:10px;padding:3px 10px;font-weight:500;}
+  .ts-segbtn button:first-child{border-radius:var(--radius) 0 0 var(--radius);margin-left:0;}
+  .ts-segbtn button:last-child{border-radius:0 var(--radius) var(--radius) 0;}
+  .ts-segbtn button.on{background:var(--slate);border-color:var(--slate-dark);color:#fff;}
+
+  table.ts-builder{width:100%;border-collapse:collapse;font-size:11px;}
+  table.ts-builder thead th{
+    background:var(--panel-2);font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:0.03em;color:var(--ink-soft);text-align:left;padding:4px 6px;
+    border-bottom:1px solid var(--line-strong);white-space:nowrap;
+  }
+  table.ts-builder tbody td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.ts-builder tbody tr.ts-off{opacity:0.42;}
+  table.ts-builder select{min-width:0;font-size:11.5px;padding:4px 6px;}
+  table.ts-builder input[type="number"]{width:56px;font-size:11.5px;padding:4px 6px;}
+  table.ts-builder input[type="date"]{font-size:11px;padding:4px 5px;min-width:118px;}
+  table.ts-builder input[type="text"]{font-size:11.5px;padding:4px 6px;width:100%;}
+  .ts-cellwrap{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+  .ts-full{width:100%;}
+  .ts-empty{color:var(--ink-faint);font-size:11.5px;padding:14px 4px;text-align:center;}
+  .ts-mselbox{
+    background:#fff;border:1px solid var(--line-strong);border-radius:var(--radius);
+    padding:3px 5px;min-width:150px;max-height:74px;overflow-y:auto;
+  }
+  .ts-mselbox label{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ink);white-space:nowrap;cursor:pointer;}
+  .ts-mselbox input{accent-color:var(--slate);margin:0;}
+  .ts-mselbox .all-row{border-bottom:1px dotted var(--line);margin-bottom:2px;padding-bottom:2px;}
+  .ts-mselbox .all-row label{color:var(--ink-faint);}
+
+  #tsChartWrap{position:relative;width:100%;}
+  #tsChartWrap svg{width:100%;height:auto;display:block;touch-action:none;}
+  .ts-chart-empty{text-align:center;color:var(--ink-faint);padding:70px 0;font-size:12px;}
+  .ts-tt{
+    position:absolute;pointer-events:none;z-index:10;display:none;background:#fff;
+    border:1px solid var(--line-strong);border-radius:var(--radius);
+    box-shadow:0 2px 6px rgba(20,22,23,.16);padding:7px 9px;font-size:11px;min-width:160px;max-width:330px;
+  }
+  .ts-tt-date{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;
+    letter-spacing:.05em;border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:4px;
+  }
+  .ts-tt-row{display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .ts-tt-row .nm{display:flex;align-items:center;gap:5px;color:var(--ink-soft);min-width:0;}
+  .ts-tt-row .vl{font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap;}
+  .ts-tt-row .chip{width:9px;height:9px;border-radius:2px;flex:0 0 auto;}
+  .ts-tt-note{margin-top:5px;padding-top:4px;border-top:1px dotted var(--line);color:var(--ink-soft);font-size:10.5px;}
+  .ts-tt-note b{font-weight:600;color:var(--ink);}
+  .ts-tt-sub{color:var(--ink-faint);font-size:10px;font-family:'IBM Plex Mono',monospace;}
+
+  table.ts-data{border-collapse:collapse;width:100%;font-size:10.5px;}
+  table.ts-data thead th{
+    background:var(--panel-2);font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:0.03em;color:var(--ink-soft);text-align:right;padding:4px 6px;
+    border-bottom:1px solid var(--line-strong);white-space:nowrap;
+  }
+  table.ts-data thead th.left, table.ts-data tbody td.left{text-align:left;}
+  table.ts-data tbody td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:right;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  table.ts-data tbody tr:hover{background:#fbfbfb;}
+  table.ts-data td.ts-bad{color:var(--rust);font-weight:600;}
+  table.ts-data td.ts-good{color:var(--olive);font-weight:600;}
+  .ts-sw{display:inline-block;width:14px;height:3px;border-radius:1px;vertical-align:3px;margin-right:6px;}
+
 </style>
 </head>
 <body>
@@ -580,10 +656,191 @@
 
     <!-- ================= PANE: TIME SERIES ================= -->
     <div class="tab-pane" id="paneTimeSeries" role="tabpanel">
-      <div class="placeholder-pane">
-        <h2>Time Series</h2>
-        <p>Nothing here yet.</p>
+
+      <!-- ---------------- scope ---------------- -->
+      <div class="panel">
+        <div class="controls-row">
+          <div class="field">
+            <label>Quarry</label>
+            <select id="tsQuarrySelect"></select>
+          </div>
+          <div class="field">
+            <label>Date range</label>
+            <div class="daterange">
+              <input type="date" id="tsStartDate"><span>&ndash;</span><input type="date" id="tsEndDate">
+            </div>
+          </div>
+          <div class="field">
+            <label>Preset</label>
+            <select id="tsPreset" style="min-width:140px;">
+              <option value="">Custom</option>
+              <option value="1m">Last month</option>
+              <option value="3m">Last 3 months</option>
+              <option value="6m">Last 6 months</option>
+              <option value="ytd">Year to date</option>
+              <option value="12m" selected>Last 12 months</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sample type</label>
+            <div class="checkgroup" id="tsTypeChecks"></div>
+          </div>
+          <div class="field">
+            <label>Point per</label>
+            <select id="tsAgg" style="min-width:130px;">
+              <option value="test">Each test</option>
+              <option value="day" selected>Day average</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Break line if gap &gt;</label>
+            <div class="daterange"><input type="number" id="tsGapDays" value="10" min="0" step="1"><span>days</span></div>
+          </div>
+        </div>
+        <div class="status-line">
+          <span id="tsScopeStatus">&mdash;</span>
+          <span id="tsModeHint"></span>
+        </div>
       </div>
+
+      <!-- ---------------- series ---------------- -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Series</h2>
+          <div class="ts-addbar">
+            <button type="button" class="mini" id="tsAddSeriesBtn">+ Add series</button>
+            <button type="button" class="mini ghost" id="tsClearSeriesBtn">Clear all</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="ts-builder" id="tsSeriesTable">
+            <thead><tr>
+              <th style="width:30px;"></th><th style="width:34px;">Color</th>
+              <th style="min-width:180px;">Source</th><th style="min-width:200px;">Metric</th>
+              <th style="min-width:160px;">Sieve</th><th style="min-width:130px;">Type</th>
+              <th style="width:66px;">Axis</th><th style="width:74px;">Mov. avg</th>
+              <th style="width:52px;">Spec</th><th style="width:66px;">&plusmn;2&sigma;</th><th style="width:34px;"></th>
+            </tr></thead>
+            <tbody id="tsSeriesBody"></tbody>
+          </table>
+        </div>
+        <div class="status-line"><span class="ts-hint">Spec-center and z-score use the sieves picked in the Sieve column. Leave it on &ldquo;Auto&rdquo; to skip fixed-100 sieves and any band that touches 100.</span></div>
+      </div>
+
+      <!-- ---------------- chart ---------------- -->
+      <div class="chart-panel">
+        <div class="panel-head">
+          <h2 class="panel-title" id="tsChartTitle">Trend</h2>
+          <div class="toggles">
+            <span class="ts-hint">Drag:</span>
+            <span class="ts-segbtn" id="tsDragMode">
+              <button type="button" data-m="mark" class="on" title="Drag across the chart to create a new manual highlight over that span.">Mark range</button>
+              <button type="button" data-m="zoom" title="Drag to zoom the x-axis to exactly that span.">Zoom</button>
+              <button type="button" data-m="pan" title="Drag to slide an already-zoomed window along the timeline.">Pan</button>
+            </span>
+            <button type="button" class="mini ghost" id="tsResetZoomBtn" disabled>Reset zoom</button>
+            <label><input type="checkbox" id="tsTgPoints" checked> Points</label>
+            <label><input type="checkbox" id="tsTgGapBands" checked> Shade no-test gaps</label>
+          </div>
+        </div>
+        <div id="tsChartWrap">
+          <div id="tsChartHost"><div class="ts-chart-empty">Loading&hellip;</div></div>
+          <div class="ts-tt" id="tsTooltip"></div>
+        </div>
+        <div class="status-line">
+          <span class="ts-hint">Wheel zooms around the cursor. Drag follows the mode above.</span>
+          <span class="ts-hint" id="tsChartStatus"></span>
+        </div>
+      </div>
+
+      <!-- ---------------- highlight days ---------------- -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Highlight days</h2>
+          <div class="ts-addbar">
+            <select id="tsHlKind">
+              <option value="manual">Manual date range</option>
+              <option value="running">Days products are running</option>
+              <option value="oos">Out-of-spec days</option>
+            </select>
+            <button type="button" class="mini" id="tsAddHlBtn">+ Add highlight</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="ts-builder" id="tsHlTable">
+            <thead><tr>
+              <th style="width:30px;" title="Show or hide this highlight on the chart">Show</th>
+              <th style="width:34px;">Color</th><th style="min-width:150px;">Type</th>
+              <th>Details</th><th style="width:70px;" title="Also tint the plot background on those days">Shade</th>
+              <th style="width:34px;"></th>
+            </tr></thead>
+            <tbody id="tsHlBody"></tbody>
+          </table>
+        </div>
+        <div class="status-line"><span class="ts-hint">Highlights annotate &mdash; they never change which data is plotted. Running rules match days when ALL selected products have tests. Ribbon rows appear under the plot.</span></div>
+      </div>
+
+      <!-- ---------------- filter days ---------------- -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Filter days</h2>
+          <div class="ts-addbar">
+            <span class="ts-hint">Start with</span>
+            <select id="tsFilterBase" title="The state every day begins in, before any rule runs.">
+              <option value="all">All days shown</option>
+              <option value="none">No days shown</option>
+            </select>
+            <span style="width:10px;"></span>
+            <select id="tsFilterKind">
+              <option value="range">Custom date range</option>
+              <option value="running">Days products are running</option>
+              <option value="oos">Out-of-spec days</option>
+            </select>
+            <button type="button" class="mini" id="tsAddFilterBtn">+ Add filter</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="ts-builder" id="tsFilterTable">
+            <thead><tr>
+              <th style="width:46px;" title="Rules run top to bottom; the last one that matches a day decides it">Order</th>
+              <th style="width:30px;">On</th><th style="width:96px;">Mode</th>
+              <th style="min-width:150px;">Type</th><th>Details</th>
+              <th style="width:96px;" title="How many days in the date range this rule matches">Matches</th>
+              <th style="width:34px;"></th>
+            </tr></thead>
+            <tbody id="tsFilterBody"></tbody>
+          </table>
+        </div>
+        <div class="status-line"><span class="ts-hint" id="tsFilterExplain"></span></div>
+      </div>
+
+      <!-- ---------------- stats + export ---------------- -->
+      <div class="table-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Series statistics &mdash; visible window</h2>
+          <div class="ts-addbar">
+            <span class="ts-hint" style="margin-right:4px;">Export</span>
+            <button type="button" class="mini" id="tsExportPdf">PDF</button>
+            <button type="button" class="mini" id="tsExportPng">PNG</button>
+            <button type="button" class="mini" id="tsExportSvg">SVG</button>
+            <button type="button" class="mini" id="tsExportCsv">CSV</button>
+          </div>
+        </div>
+        <table class="ts-data" id="tsStatsTable">
+          <thead><tr>
+            <th class="left">Series</th><th>n</th><th>Mean</th><th>Std dev</th><th>Min</th><th>Max</th>
+            <th>Spec</th><th>% in spec</th>
+            <th title="Distance from the mean to the nearest spec limit divided by 3 sigma. 1.00 = the limit sits 3 sigma away. Asterisk = one-sided spec.">Cpk</th>
+            <th class="left" title="Least-squares slope through the visible points, as change per 30 days.">Trend</th>
+          </tr></thead>
+          <tbody id="tsStatsBody"></tbody>
+        </table>
+        <div class="status-line">
+          <span class="ts-hint">Cpk = room left in the spec band given the scatter; under 1.00 expect out-of-spec material. Trend = least-squares slope per 30 days.</span>
+          <span class="ts-hint">PDF and PNG capture the chart exactly as drawn; CSV includes every plotted point plus these statistics.</span>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -614,6 +871,23 @@
   const GRAPH_SCOPES = ["Sites.Selected"];
   const PRODUCTS_LIST_NAME = "Gradation_Products";
   const LOG_LIST_NAME = "Gradation_Master_Log";
+
+  // Time Series tab — specific-gravity / absorption list on the same site.
+  // Addressed by its GUID, so renaming the list in SharePoint won't break it.
+  // If the list is ever unreachable the Time Series tab still works; the SG
+  // source is simply not offered.
+  const TS_SG_LIST_ID       = "4ba57e86-68bb-45d5-aa4a-c94078c7dbcb";
+  const TS_SG_LIST_NAME     = "SG_Absorption_Log";   // fallback lookup only
+  const TS_SG_COL_QUARRY    = "Quarry";
+  const TS_SG_COL_SAMPLE    = "Sample";
+  const TS_SG_COL_DATE      = "SampleDate";
+  const TS_SG_COL_HOURS     = "TimeInWater";
+  const TS_SG_COL_ABS_G     = "Absorption";
+  const TS_SG_COL_ABS_PCT   = "PercentAbsorption";
+  const TS_SG_COL_BULK      = "BulkSpecificGravity";
+  const TS_SG_COL_APPARENT  = "ApparentSpecificGravity";
+  const TS_SG_COL_TECH      = "Technician";
+  const TS_SG_COL_NOTES     = "Notes";
 
   const LOAD_WINDOW_MONTHS = 12;   // how much history to preload silently on sign-in
   const DEFAULT_DISPLAY_MONTHS = 2; // default displayed range
@@ -1378,6 +1652,11 @@
           const pane = $(b.dataset.pane);
           if (pane) pane.classList.toggle("active", on);
         });
+        // The Time Series tab builds itself the first time it's opened so
+        // sign-in isn't slowed down by work nobody may look at.
+        if (btn.dataset.pane === "paneTimeSeries"){
+          tsInit().catch(e => showError("Time Series could not start: " + e.message));
+        }
       });
     });
   }
@@ -2363,8 +2642,15 @@
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 
+  // Filenames use spaces, never underscores. Strip only what a filesystem can't
+  // take, collapse any run of illegal characters (or stray underscores) to a
+  // single space, and trim — so "Class 5 Aggregate Base" stays readable.
   function sanitizeFilenamePart(s){
-    return String(s || "").replace(/[^a-zA-Z0-9._-]+/g, "_");
+    return String(s || "")
+      .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, " ")
+      .replace(/_+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   async function generateReport(){
@@ -2411,8 +2697,8 @@
           generatedDate: generatedDate,
           selectedDaysOnly: st.chartSelectedDaysOnly
         });
-        const pdfFilename = "Gradation_Report_" + sanitizeFilenamePart(selectedQuarry) + "_" +
-          sanitizeFilenamePart(productLabel) + "_" + sanitizeFilenamePart(generatedDate.replace(/\//g,"-")) + ".pdf";
+        const pdfFilename = sanitizeFilenamePart("Gradation Report " + selectedQuarry + " " +
+          productLabel + " " + generatedDate.replace(/\//g,"-")) + ".pdf";
         doc.save(pdfFilename);
       }
 
@@ -2439,6 +2725,1526 @@
      ================================================================ */
   $("generateBtn").addEventListener("click", generateReport);
   initAuth();
+
+  /* ================================================================
+     TIME SERIES TAB
+     Everything below is namespaced ts* so it can't collide with the
+     Report Generator's state. It reads the SAME allTests / products
+     arrays the Report Generator loads, plus an optional SG list.
+     ================================================================ */
+
+  const TS_W = 1180, TS_BASE_H = 470, TS_M = {l:62, r:64, t:16, b:52}, TS_RIB_H = 11;
+  const TS_DAY = 86400000;
+  const TS_PALETTE = ["#b23a2f","#3d5a73","#5c6e4f","#c07d1e","#7a4b7d","#2c8a8a","#8c2c23","#4a4a4a"];
+  const TS_TYPES = ["Production","Loadout","Other"];
+  // Standard fineness-modulus sieve ladder (ASTM C136), coarse to fine.
+  const TS_FM_MM = [152.4,76.2,38.1,19.05,9.525,4.750,2.360,1.180,0.600,0.300,0.150];
+
+  const tsState = {
+    quarry:null, start:null, end:null,
+    types:{Production:true, Loadout:false, Other:false},
+    agg:"day", gapDays:10,
+    series:[], highlights:[], filters:[], filterBase:"all",
+    view:null, dragMode:"mark",
+    toggles:{points:true, gapBands:true},
+    booted:false
+  };
+  let tsNextSeriesId = 1, tsNextHlId = 1, tsNextFId = 1;
+  let TS_VISIBLE = null;
+  let TS_CHART = null;
+  let tsSgRows = null, tsSgStatus = "idle", tsSgError = "";
+  const tsNormCache = new Map();
+  let tsProdCache = {};
+
+  function tsEsc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function tsNum(v,d){ return (v===null||v===undefined||!isFinite(v)) ? "\u2014" : Number(v).toFixed(d); }
+  function tsClamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function tsIso(ms){ const d=new Date(ms); return d.getUTCFullYear()+"-"+pad2(d.getUTCMonth()+1)+"-"+pad2(d.getUTCDate()); }
+  function tsParseISO(s){ const p=String(s).slice(0,10).split("-").map(Number); return Date.UTC(p[0],p[1]-1,p[2]); }
+  function tsFmtShort(ms){ const d=new Date(ms); return (d.getUTCMonth()+1)+"/"+d.getUTCDate()+"/"+String(d.getUTCFullYear()).slice(2); }
+  function tsFmtMonth(ms){ const d=new Date(ms); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]+" "+String(d.getUTCFullYear()).slice(2); }
+  function tsIsSG(k){ return String(k).indexOf("SG::") === 0; }
+  function tsSgKey(q){ return "SG::" + q; }
+
+  /* ---------------- data adapters over the app's own arrays ---------------- */
+
+  // One normalized record per Gradation_Master_Log row, cached by item id.
+  function tsNormTest(t){
+    let n = tsNormCache.get(t._itemId);
+    if (n) return n;
+    n = {
+      id: t._itemId,
+      ms: dayNumFromISODateUTC(t.SampleDate) * TS_DAY,
+      type: t.SampleType || "Other",
+      notes: t.Notes ? stripHtml(t.Notes) : "",
+      tech: t.Technician || t.Tester || "",
+      sieves: {}
+    };
+    Object.keys(t).forEach(col => {
+      const m = col.match(/^((?:Coarse|Fine)_.+)_Pct$/);
+      if (m){
+        const v = parseFloat(t[col]);
+        if (!isNaN(v)) n.sieves[m[1]] = v;
+      }
+    });
+    tsNormCache.set(t._itemId, n);
+    return n;
+  }
+
+  function tsGradKeys(quarry){
+    const keys = [];
+    const seen = new Set();
+    // Listed products first, in DisplayOrder
+    products.filter(p => p.Quarry === quarry && !p.IsCustomProduct && p.Title)
+      .slice().sort((a,b) => {
+        const oa = parseFloat(a.DisplayOrder), ob = parseFloat(b.DisplayOrder);
+        const ha = isNaN(oa), hb = isNaN(ob);
+        if (ha && hb) return 0; if (ha) return 1; if (hb) return -1;
+        return oa - ob;
+      })
+      .forEach(p => { const k = quarry + " | " + p.Title; if (!seen.has(k)){ seen.add(k); keys.push(k); } });
+    // Anything present in the log but not in Gradation_Products (incl. custom products)
+    allTests.filter(t => t.Quarry === quarry && t.Product)
+      .forEach(t => { const k = quarry + " | " + t.Product; if (!seen.has(k)){ seen.add(k); keys.push(k); } });
+    customProductIndex.filter(c => c.Quarry === quarry)
+      .forEach(c => { const k = quarry + " | " + c.Product; if (!seen.has(k)){ seen.add(k); keys.push(k); } });
+    return keys;
+  }
+
+  function tsSgQuarries(){
+    if (!tsSgRows || !tsSgRows.length) return [];
+    return Array.from(new Set(tsSgRows.map(r => r.quarry).filter(Boolean)));
+  }
+  function tsSgKeysForQuarry(quarry){
+    return tsSgQuarries().indexOf(quarry) === -1 ? [] : [tsSgKey(quarry)];
+  }
+  function tsSgSamples(quarry){
+    if (!tsSgRows) return [];
+    return Array.from(new Set(tsSgRows.filter(r => r.quarry === quarry).map(r => r.sample).filter(Boolean))).sort();
+  }
+  function tsAllKeys(quarry){ return tsGradKeys(quarry).concat(tsSgKeysForQuarry(quarry)); }
+
+  // Sieve list + parsed spec band for a product key. Custom / unlisted products
+  // have no Gradation_Products row, so their sieves come from the test data and
+  // they simply have no spec.
+  function tsProductInfo(key){
+    if (tsProdCache[key]) return tsProdCache[key];
+    const i = key.indexOf(" | ");
+    if (i === -1) return null;
+    const quarry = key.slice(0, i), name = key.slice(i + 3);
+    const row = products.find(p => p.Quarry === quarry && p.Title === name) || null;
+    let sieves = row ? getSievesForProduct(row) : [];
+    const specs = {};
+    if (sieves.length && row){
+      sieves.forEach(s => {
+        const sp = parseSpec(row[s.key]);
+        if (!sp) specs[s.key] = null;
+        else if (sp.wildcard) specs[s.key] = {lo:null, hi:null};
+        else specs[s.key] = {lo: isNaN(sp.low) ? null : sp.low, hi: isNaN(sp.high) ? null : sp.high};
+      });
+    }
+    if (!sieves.length){
+      const rows = allTests.filter(t => t.Quarry === quarry && t.Product === name);
+      sieves = getSievesFromTests(rows);
+      sieves.forEach(s => { specs[s.key] = null; });
+    }
+    const info = {kind:"grad", quarry, name, keys: sieves.map(s => s.key), sieveInfo: sieves, specs, hasSpec: sieves.some(s => specs[s.key])};
+    tsProdCache[key] = info;
+    return info;
+  }
+  function tsSourceInfo(key){
+    if (tsIsSG(key)){
+      const quarry = key.slice(4);
+      return {kind:"sg", quarry, name:"Specific gravity", samples: tsSgSamples(quarry)};
+    }
+    return tsProductInfo(key);
+  }
+  function tsSourceLabel(key){
+    const s = tsSourceInfo(key);
+    return s ? s.name : key;
+  }
+
+  /* ---------------- SG list (optional; app works fine without it) ---------------- */
+  async function tsLoadSG(){
+    if (tsSgStatus === "loading" || tsSgStatus === "loaded" || tsSgStatus === "error") return;
+    tsSgStatus = "loading";
+    try {
+      // The list GUID is known, so ask Graph for it directly — no displayName
+      // lookup, and renaming the list in SharePoint won't break this.
+      const listId = TS_SG_LIST_ID || await getListId(TS_SG_LIST_NAME);
+      const items = await graphGetAllPages(
+        "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId + "/items?expand=fields&$top=500"
+      );
+      tsSgRows = items.map(it => {
+        const f = it.fields || {};
+        const dateRaw = f[TS_SG_COL_DATE];
+        if (!dateRaw) return null;
+        const num = k => { const v = parseFloat(f[k]); return isNaN(v) ? null : v; };
+        return {
+          id: String(it.id),
+          quarry: f[TS_SG_COL_QUARRY] || "",
+          sample: f[TS_SG_COL_SAMPLE] || "(unspecified)",
+          ms: dayNumFromISODateUTC(dateRaw) * TS_DAY,
+          bulk: num(TS_SG_COL_BULK),
+          appsg: num(TS_SG_COL_APPARENT),
+          abspct: num(TS_SG_COL_ABS_PCT),
+          absg: num(TS_SG_COL_ABS_G),
+          hours: num(TS_SG_COL_HOURS),
+          title: f.Title || "",
+          tech: f[TS_SG_COL_TECH] || "",
+          notes: f[TS_SG_COL_NOTES] ? stripHtml(f[TS_SG_COL_NOTES]) : ""
+        };
+      }).filter(Boolean);
+      tsSgStatus = "loaded";
+    } catch(e){
+      tsSgRows = [];
+      tsSgStatus = "error";
+      tsSgError = e.message || String(e);
+      console.warn("Time Series: specific-gravity list unavailable — " + tsSgError);
+    }
+  }
+
+  /* ---------------- metric math ---------------- */
+  function tsDValue(n, prod, pct){
+    const pts = prod.keys.filter(k => typeof n.sieves[k] === "number")
+      .map(k => ({mm: sieveLookup(k).mm, p: n.sieves[k]}))
+      .sort((a,b) => a.mm - b.mm);
+    if (pts.length < 2) return null;
+    if (pct < pts[0].p || pct > pts[pts.length-1].p) return null;   // never extrapolate
+    for (let i=0; i<pts.length-1; i++){
+      const a = pts[i], b = pts[i+1];
+      if (pct === a.p) return a.mm;
+      if (pct >= a.p && pct <= b.p && b.p !== a.p){
+        const f = (pct - a.p) / (b.p - a.p);
+        return Math.exp(Math.log(a.mm) + f * (Math.log(b.mm) - Math.log(a.mm)));
+      }
+    }
+    return null;
+  }
+  function tsFM(n, prod){
+    const mms = prod.keys.map(k => sieveLookup(k).mm);
+    if (!mms.length) return null;
+    const maxMm = Math.max.apply(null, mms);
+    const need = TS_FM_MM.filter(mm => mm <= maxMm + 1e-9);
+    if (!need.length) return null;
+    let sum = 0;
+    for (const mm of need){
+      const k = prod.keys.find(kk => Math.abs(sieveLookup(kk).mm - mm) < 1e-6);
+      if (!k || typeof n.sieves[k] !== "number") return null;   // incomplete ladder -> honest null
+      sum += (100 - n.sieves[k]);
+    }
+    return sum / 100;
+  }
+  function tsAutoCtrl(prod){
+    const out = prod.keys.filter(k => {
+      const sp = prod.specs[k];
+      if (!sp) return false;
+      if (sp.lo !== null && sp.hi !== null && sp.lo === sp.hi) return false;  // fixed 100 rows
+      if (sp.hi === 100) return false;                                        // bands pinned at saturation
+      return sp.lo !== null || sp.hi !== null;
+    });
+    if (out.length) return out;
+    return prod.keys.filter(k => { const sp = prod.specs[k]; return sp && !(sp.lo !== null && sp.lo === sp.hi); });
+  }
+  function tsCtrlSieves(s){
+    const prod = tsProductInfo(s.sourceKey);
+    if (!prod) return [];
+    const chosen = (s.ctrlSieves || []).filter(k => prod.keys.indexOf(k) !== -1);
+    return chosen.length ? chosen : tsAutoCtrl(prod);
+  }
+  function tsSpecCenter(n, prod, keys){
+    let worst = null, wk = null;
+    (keys || prod.keys).forEach(k => {
+      const sp = prod.specs[k], v = n.sieves[k];
+      if (typeof v !== "number" || !sp) return;
+      if (sp.lo !== null && sp.lo === sp.hi) return;
+      let dev = null;
+      if (sp.lo !== null && sp.hi !== null && sp.hi > sp.lo) dev = Math.abs((v - sp.lo)/(sp.hi - sp.lo)*100 - 50) * 2;
+      else if (sp.hi !== null && sp.lo === null && sp.hi > 0) dev = v / sp.hi * 100;
+      else if (sp.lo !== null && sp.hi === null && v > 0) dev = sp.lo / v * 100;
+      if (dev === null) return;
+      if (worst === null || dev > worst){ worst = dev; wk = k; }
+    });
+    return worst === null ? null : {v: worst, sieve: wk};
+  }
+  function tsOosCount(n, prod){
+    let c = 0;
+    prod.keys.forEach(k => {
+      const sp = prod.specs[k], v = n.sieves[k];
+      if (typeof v !== "number" || !sp) return;
+      if (sp.lo !== null && sp.lo === sp.hi) return;
+      if ((sp.lo !== null && v < sp.lo - 1e-9) || (sp.hi !== null && v > sp.hi + 1e-9)) c++;
+    });
+    return c;
+  }
+  function tsTestIsOOS(n, prod){ return tsOosCount(n, prod) > 0; }
+
+  const TS_METRICS = {
+    pass:    {label:"% Passing",                             src:"grad", needsSieve:1, unit:"%",  dec:1, specable:1},
+    between: {label:"% Retained between sieves",             src:"grad", needsSieve:2, unit:"%",  dec:1},
+    speccen: {label:"Worst sieve \u2014 dist. from spec center", src:"grad", needsSieve:0, unit:"", dec:1, refLine:100, ctrl:1, needsSpec:1},
+    zscore:  {label:"Worst sieve \u2014 z vs its own history",   src:"grad", needsSieve:0, unit:"\u03c3", dec:2, refLine:3, ctrl:1, win:1},
+    oos:     {label:"Sieves out of spec (count)",            src:"grad", needsSieve:0, unit:"",   dec:0, needsSpec:1},
+    fm:      {label:"Fineness modulus",                      src:"grad", needsSieve:0, unit:"",   dec:2},
+    dx:      {label:"Dx \u2014 grain size at x%",            src:"grad", needsSieve:0, unit:"mm", dec:3, pct:1},
+    cu:      {label:"Cu \u2014 uniformity (D60/D10)",        src:"grad", needsSieve:0, unit:"",   dec:2},
+    cc:      {label:"Cc \u2014 curvature",                   src:"grad", needsSieve:0, unit:"",   dec:2},
+    bulk:    {label:"Bulk specific gravity",                 src:"sg",   needsSieve:0, unit:"",   dec:3},
+    appsg:   {label:"Apparent specific gravity",             src:"sg",   needsSieve:0, unit:"",   dec:3},
+    abspct:  {label:"Absorption (%)",                        src:"sg",   needsSieve:0, unit:"%",  dec:2},
+    absg:    {label:"Absorption (g)",                        src:"sg",   needsSieve:0, unit:"g",  dec:1},
+    count:   {label:"Test count per day",                    src:"grad", needsSieve:0, unit:"",   dec:0, bar:1}
+  };
+  function tsMetricsFor(key){
+    const want = tsIsSG(key) ? "sg" : "grad";
+    return Object.keys(TS_METRICS).filter(k => TS_METRICS[k].src === want);
+  }
+  function tsSamplesFor(s){
+    const src = tsSourceInfo(s.sourceKey);
+    if (!src || src.kind !== "sg") return [];
+    const sel = (s.sgSamples || []).filter(x => src.samples.indexOf(x) !== -1);
+    return sel.length ? sel : src.samples.slice();
+  }
+
+  function tsMetricValue(n, src, s){
+    if (src.kind === "sg"){
+      switch (s.metric){
+        case "bulk":   return n.bulk;
+        case "appsg":  return n.appsg;
+        case "abspct": return n.abspct;
+        case "absg":   return n.absg;
+      }
+      return null;
+    }
+    switch (s.metric){
+      case "pass":    return typeof n.sieves[s.sieve] === "number" ? n.sieves[s.sieve] : null;
+      case "between": {
+        const a = n.sieves[s.sieve], b = n.sieves[s.sieve2];
+        return (typeof a === "number" && typeof b === "number") ? a - b : null;
+      }
+      case "speccen": { const r = tsSpecCenter(n, src, tsCtrlSieves(s)); return r ? r.v : null; }
+      case "oos":     return src.hasSpec ? tsOosCount(n, src) : null;
+      case "fm":      return tsFM(n, src);
+      case "dx":      return tsDValue(n, src, s.pct);
+      case "cu":      { const a = tsDValue(n,src,60), b = tsDValue(n,src,10); return (a&&b) ? a/b : null; }
+      case "cc":      { const a = tsDValue(n,src,60), b = tsDValue(n,src,30), c = tsDValue(n,src,10); return (a&&b&&c) ? (b*b)/(c*a) : null; }
+      case "count":   return 1;
+    }
+    return null;
+  }
+  function tsSeriesSpec(s){
+    if (s.metric !== "pass") return null;
+    const prod = tsProductInfo(s.sourceKey);
+    if (!prod) return null;
+    const sp = prod.specs[s.sieve];
+    return sp ? {lo: sp.lo, hi: sp.hi} : null;
+  }
+  function tsSeriesLabel(s){
+    const src = tsSourceInfo(s.sourceKey);
+    if (!src) return "?";
+    let short = src.name;
+    if (src.kind === "sg"){
+      const sel = tsSamplesFor(s);
+      short = sel.length === src.samples.length ? "SG all samples" : "SG " + sel.join(" + ");
+    }
+    let core = TS_METRICS[s.metric].label;
+    if (s.metric === "pass")    core = "% passing " + (sieveLookup(s.sieve).label || s.sieve);
+    if (s.metric === "between") core = "% " + sieveLookup(s.sieve).label + " \u2212 " + sieveLookup(s.sieve2).label;
+    if (s.metric === "speccen") core = "spec-center dist.";
+    if (s.metric === "zscore")  core = "worst z (last " + (s.zWin || 20) + ")";
+    if (s.metric === "oos")     core = "sieves out of spec";
+    if (s.metric === "dx")      core = "D" + s.pct;
+    if (s.metric === "cu")      core = "Cu";
+    if (s.metric === "cc")      core = "Cc";
+    if (s.metric === "fm")      core = "FM";
+    if (s.metric === "bulk")    core = "bulk SG";
+    if (s.metric === "appsg")   core = "apparent SG";
+    if (s.metric === "abspct")  core = "absorption %";
+    if (s.metric === "absg")    core = "absorption g";
+    if (s.metric === "count")   core = "tests/day";
+    return short + " \u2014 " + core + ((src.kind !== "sg" && s.typeOverride) ? " \u00b7 " + s.typeOverride : "");
+  }
+
+  /* ---------------- day sets, filter stack ---------------- */
+  function tsTypesActive(){ return TS_TYPES.filter(t => tsState.types[t]); }
+
+  function tsRawRows(key){
+    if (tsIsSG(key)){
+      const quarry = key.slice(4);
+      return (tsSgRows || []).filter(r => r.quarry === quarry);
+    }
+    const i = key.indexOf(" | ");
+    const quarry = key.slice(0, i), name = key.slice(i + 3);
+    return allTests.filter(t => t.Quarry === quarry && t.Product === name).map(tsNormTest);
+  }
+
+  // Days when ALL listed products have tests (type filter applies, day filters do not).
+  function tsRunningDays(keys){
+    const use = (keys && keys.length) ? keys : [];
+    if (!use.length) return new Set();
+    const allowed = tsTypesActive();
+    const sets = use.map(k => {
+      const s = new Set();
+      tsRawRows(k).forEach(n => {
+        if (n.ms >= tsState.start && n.ms <= tsState.end && allowed.indexOf(n.type) !== -1) s.add(n.ms);
+      });
+      return s;
+    });
+    let out = sets[0];
+    for (let i=1; i<sets.length; i++) out = new Set(Array.from(out).filter(x => sets[i].has(x)));
+    return out;
+  }
+  function tsOosDays(keys){
+    const use = (keys && keys.length) ? keys : tsGradKeys(tsState.quarry);
+    const allowed = tsTypesActive();
+    const out = new Set();
+    use.forEach(k => {
+      const prod = tsProductInfo(k);
+      if (!prod || !prod.hasSpec) return;
+      tsRawRows(k).forEach(n => {
+        if (n.ms < tsState.start || n.ms > tsState.end) return;
+        if (allowed.indexOf(n.type) === -1) return;
+        if (tsTestIsOOS(n, prod)) out.add(n.ms);
+      });
+    });
+    return out;
+  }
+  function tsRuleDays(r){
+    if (r.kind === "range" || r.kind === "manual"){
+      const s = new Set();
+      for (let ms = Math.max(tsState.start, r.start); ms <= Math.min(tsState.end, r.end); ms += TS_DAY) s.add(ms);
+      return s;
+    }
+    if (r.kind === "running") return tsRunningDays(r.keys);
+    if (r.kind === "oos")     return tsOosDays(r.keys);
+    return new Set();
+  }
+  // Rules run top to bottom from the chosen starting state; the LAST rule that
+  // matches a day decides whether that day is shown.
+  function tsComputeVisible(){
+    const on = tsState.filters.filter(f => f.on);
+    const sets = on.map(tsRuleDays);
+    const base = tsState.filterBase === "all";
+    const vis = new Set();
+    for (let ms = tsState.start; ms <= tsState.end; ms += TS_DAY){
+      let show = base;
+      for (let i=0; i<on.length; i++) if (sets[i].has(ms)) show = (on[i].mode === "show");
+      if (show) vis.add(ms);
+    }
+    return vis;
+  }
+  function tsDayVisible(ms){ return !TS_VISIBLE || TS_VISIBLE.has(ms); }
+
+  /* ---------------- series data ---------------- */
+  function tsTestsFor(s){
+    const sg = tsIsSG(s.sourceKey);
+    const allowed = s.typeOverride ? [s.typeOverride] : tsTypesActive();
+    const samples = sg ? tsSamplesFor(s) : null;
+    return tsRawRows(s.sourceKey).filter(n =>
+      n.ms >= tsState.start && n.ms <= tsState.end && tsDayVisible(n.ms) &&
+      (sg ? samples.indexOf(n.sample) !== -1 : allowed.indexOf(n.type) !== -1)
+    );
+  }
+  // Rolling z-score: each test scored against the previous zWin tests of the same sieve.
+  function tsZSeries(rows, prod, s){
+    const keys = tsCtrlSieves(s), win = Math.max(5, s.zWin || 20);
+    const hist = {}; keys.forEach(k => hist[k] = []);
+    return rows.map(n => {
+      let best = null, bk = null;
+      keys.forEach(k => {
+        const v = n.sieves[k], h = hist[k];
+        if (typeof v === "number" && h.length >= 5){
+          const m = h.reduce((a,c)=>a+c,0)/h.length;
+          const sd = Math.sqrt(h.reduce((a,c)=>a+(c-m)*(c-m),0)/(h.length-1));
+          if (sd > 1e-6){ const z = Math.abs((v-m)/sd); if (best === null || z > best){ best = z; bk = k; } }
+        }
+        if (typeof v === "number"){ h.push(v); if (h.length > win) h.shift(); }
+      });
+      return {t:n, v:best, extra: bk ? sieveLookup(bk).label : null};
+    }).filter(x => x.v !== null && isFinite(x.v));
+  }
+  function tsBuildPoints(s){
+    const rows = tsTestsFor(s).slice().sort((a,b) => a.ms - b.ms);
+    const src = tsSourceInfo(s.sourceKey);
+    if (!src) return [];
+    if (s.metric === "count"){
+      const byDay = {}, notes = {};
+      rows.forEach(n => { byDay[n.ms] = (byDay[n.ms]||0)+1; if (n.notes) (notes[n.ms] = notes[n.ms]||[]).push(n.notes); });
+      return Object.keys(byDay).map(Number).sort((a,b)=>a-b)
+        .map(ms => ({ms, v:byDay[ms], raw:byDay[ms], n:byDay[ms], notes:notes[ms]||[]}));
+    }
+    let vals;
+    if (s.metric === "zscore") vals = tsZSeries(rows, src, s);
+    else vals = rows.map(n => {
+      const v = tsMetricValue(n, src, s);
+      let extra = null;
+      if (s.metric === "speccen"){ const r = tsSpecCenter(n, src, tsCtrlSieves(s)); extra = r ? sieveLookup(r.sieve).label : null; }
+      return {t:n, v, extra};
+    }).filter(x => x.v !== null && isFinite(x.v));
+
+    let pts;
+    if (tsState.agg === "day"){
+      const g = {};
+      vals.forEach(x => {
+        const sub = src.kind === "sg" ? x.t.sample : x.t.type;
+        const key = x.t.ms + "|" + sub;
+        if (!g[key]) g[key] = {ms:x.t.ms, sub, vs:[], notes:[], techs:new Set(), extras:[], hours:[]};
+        g[key].vs.push(x.v);
+        if (x.t.notes) g[key].notes.push(x.t.notes);
+        if (x.t.tech) g[key].techs.add(x.t.tech);
+        if (x.extra) g[key].extras.push(x.extra);
+        if (typeof x.t.hours === "number") g[key].hours.push(x.t.hours);
+      });
+      pts = Object.keys(g).map(k => g[k]).map(o => ({
+        ms:o.ms, v:o.vs.reduce((a,b)=>a+b,0)/o.vs.length, n:o.vs.length,
+        sub:o.sub, notes:o.notes, tech:Array.from(o.techs).join(", "), extra:o.extras[0]||null,
+        hours: o.hours.length ? o.hours.reduce((a,b)=>a+b,0)/o.hours.length : null
+      }));
+    } else {
+      pts = vals.map(x => ({
+        ms:x.t.ms, v:x.v, n:1, sub:(src.kind==="sg"?x.t.sample:x.t.type),
+        tech:x.t.tech, notes:x.t.notes?[x.t.notes]:[], extra:x.extra,
+        hours: (typeof x.t.hours === "number") ? x.t.hours : null
+      }));
+    }
+    pts.sort((a,b) => a.ms - b.ms);
+    pts.forEach(p => p.raw = p.v);
+    if (s.ma > 1){
+      for (let i=0; i<pts.length; i++){
+        const a = Math.max(0, i - s.ma + 1);
+        let sum = 0; for (let j=a; j<=i; j++) sum += pts[j].v;
+        pts[i].ma = sum / (i - a + 1);
+      }
+    }
+    return pts;
+  }
+
+  /* ---------------- shared multi-select cell ---------------- */
+  function tsMselCell(field, selected, options, labelOf, allLabel){
+    const all = !selected.length;
+    return '<div class="ts-mselbox" data-msel="'+field+'">' +
+      (allLabel ? '<div class="all-row"><label><input type="checkbox" data-opt="__all"'+(all?" checked":"")+'> '+tsEsc(allLabel)+'</label></div>' : "") +
+      options.map(o => '<label><input type="checkbox" data-opt="'+tsEsc(o)+'"'+(selected.indexOf(o)!==-1?" checked":"")+'> '+tsEsc(labelOf(o))+'</label>').join("") +
+      '</div>';
+  }
+  function tsWireMsel(tr, obj, field, after){
+    const box = tr.querySelector('[data-msel="'+field+'"]');
+    if (!box) return;
+    Array.from(box.querySelectorAll("[data-opt]")).forEach(cb => cb.addEventListener("change", () => {
+      if (cb.dataset.opt === "__all"){ obj[field] = []; }
+      else {
+        let cur = (obj[field] || []).slice();
+        if (cb.checked){ if (cur.indexOf(cb.dataset.opt) === -1) cur.push(cb.dataset.opt); }
+        else cur = cur.filter(x => x !== cb.dataset.opt);
+        obj[field] = cur;
+      }
+      after();
+    }));
+  }
+
+  /* ---------------- series table ---------------- */
+  function tsFixSeries(s){
+    const list = tsMetricsFor(s.sourceKey);
+    if (list.indexOf(s.metric) === -1) s.metric = list[0];
+    if (!Array.isArray(s.sgSamples)) s.sgSamples = [];
+    if (!Array.isArray(s.ctrlSieves)) s.ctrlSieves = [];
+    if (!s.zWin) s.zWin = 20;
+    if (tsIsSG(s.sourceKey)){
+      s.typeOverride = "";
+      const src = tsSourceInfo(s.sourceKey);
+      s.sgSamples = s.sgSamples.filter(x => src.samples.indexOf(x) !== -1);
+      return;
+    }
+    const prod = tsProductInfo(s.sourceKey);
+    if (!prod) return;
+    s.ctrlSieves = s.ctrlSieves.filter(k => prod.keys.indexOf(k) !== -1);
+    if (prod.keys.indexOf(s.sieve) === -1)  s.sieve  = prod.keys[prod.keys.length-1] || "";
+    if (prod.keys.indexOf(s.sieve2) === -1) s.sieve2 = prod.keys[Math.max(0, prod.keys.length-2)] || "";
+  }
+  function tsRenderSeries(){
+    const body = $("tsSeriesBody");
+    if (!tsState.series.length){
+      body.innerHTML = '<tr><td colspan="11" class="ts-empty">No series yet \u2014 add one to start plotting.</td></tr>';
+      return;
+    }
+    body.innerHTML = tsState.series.map(s => {
+      const sg = tsIsSG(s.sourceKey), prod = sg ? null : tsProductInfo(s.sourceKey), m = TS_METRICS[s.metric];
+      const gOpts = tsGradKeys(tsState.quarry).map(k =>
+        '<option value="'+tsEsc(k)+'"'+(k===s.sourceKey?" selected":"")+'>'+tsEsc(tsSourceLabel(k))+'</option>').join("");
+      const sgKeys = tsSgKeysForQuarry(tsState.quarry);
+      const sOpts = sgKeys.map(k => '<option value="'+tsEsc(k)+'"'+(k===s.sourceKey?" selected":"")+'>Specific gravity</option>').join("");
+      const metOpts = tsMetricsFor(s.sourceKey).map(k =>
+        '<option value="'+k+'"'+(k===s.metric?" selected":"")+'>'+tsEsc(TS_METRICS[k].label)+'</option>').join("");
+      const sieveOpts = sel => prod ? prod.keys.map(k =>
+        '<option value="'+k+'"'+(k===sel?" selected":"")+'>'+tsEsc(sieveLookup(k).label)+'</option>').join("") : "";
+
+      let sieveCell = '<span class="ts-hint">\u2014</span>';
+      if (!sg && m.ctrl){
+        sieveCell = tsMselCell("ctrlSieves", s.ctrlSieves, prod.keys, k => sieveLookup(k).label, "Auto");
+        if (m.win) sieveCell += '<div class="ts-cellwrap" style="margin-top:3px;"><span class="ts-hint">vs last</span><input type="number" data-f="zWin" value="'+s.zWin+'" min="5" max="200" step="5"><span class="ts-hint">tests</span></div>';
+      } else if (!sg && m.needsSieve === 1){
+        sieveCell = '<select class="ts-full" data-f="sieve">'+sieveOpts(s.sieve)+'</select>';
+      } else if (!sg && m.needsSieve === 2){
+        sieveCell = '<div class="ts-cellwrap"><select data-f="sieve" style="flex:1;">'+sieveOpts(s.sieve)+'</select><span class="ts-hint">\u2212</span><select data-f="sieve2" style="flex:1;">'+sieveOpts(s.sieve2)+'</select></div>';
+      } else if (!sg && m.pct){
+        sieveCell = '<div class="ts-cellwrap"><span class="ts-hint">D</span><input type="number" data-f="pct" value="'+s.pct+'" min="1" max="99" step="1"><span class="ts-hint">% pass</span></div>';
+      }
+
+      let typeCell;
+      if (sg) typeCell = tsMselCell("sgSamples", s.sgSamples, tsSourceInfo(s.sourceKey).samples, x => x, "All samples");
+      else typeCell = '<select data-f="typeOverride" class="ts-full">' +
+        ['<option value="">Use global</option>'].concat(TS_TYPES.map(t =>
+          '<option value="'+t+'"'+(t===s.typeOverride?" selected":"")+'>'+t+'</option>')).join("") + '</select>';
+
+      const specable = !!(m.specable || m.refLine);
+      return '<tr data-id="'+s.id+'" class="'+(s.on?"":"ts-off")+'">' +
+        '<td><input type="checkbox" data-f="on"'+(s.on?" checked":"")+'></td>' +
+        '<td><input type="color" data-f="color" value="'+s.color+'"></td>' +
+        '<td><select data-f="sourceKey" class="ts-full"><optgroup label="Gradation">'+gOpts+'</optgroup>' +
+          (sOpts ? '<optgroup label="Specific gravity">'+sOpts+'</optgroup>' : "") + '</select></td>' +
+        '<td><select data-f="metric" class="ts-full">'+metOpts+'</select></td>' +
+        '<td>'+sieveCell+'</td><td>'+typeCell+'</td>' +
+        '<td><select data-f="axis"><option value="L"'+(s.axis==="L"?" selected":"")+'>Left</option><option value="R"'+(s.axis==="R"?" selected":"")+'>Right</option></select></td>' +
+        '<td><input type="number" data-f="ma" value="'+s.ma+'" min="1" max="60" step="1"></td>' +
+        '<td style="text-align:center;"><input type="checkbox" data-f="spec"'+(s.spec?" checked":"")+(specable?"":" disabled")+'></td>' +
+        '<td style="text-align:center;"><input type="checkbox" data-f="sigma"'+(s.sigma?" checked":"")+'></td>' +
+        '<td><button class="mini ghost" data-f="del">\u00d7</button></td></tr>';
+    }).join("");
+
+    Array.from(body.querySelectorAll("tr")).forEach(tr => {
+      const s = tsState.series.find(x => x.id === +tr.dataset.id);
+      if (!s) return;
+      tsWireMsel(tr, s, "ctrlSieves", () => { tsRenderSeries(); tsRedraw(); });
+      tsWireMsel(tr, s, "sgSamples",  () => { tsRenderSeries(); tsRedraw(); });
+      Array.from(tr.querySelectorAll("[data-f]")).forEach(el => {
+        const f = el.dataset.f;
+        if (f === "del"){ el.addEventListener("click", () => { tsState.series = tsState.series.filter(x => x.id !== s.id); tsRenderSeries(); tsRedraw(); }); return; }
+        el.addEventListener("change", () => {
+          if (el.type === "checkbox") s[f] = el.checked;
+          else if (el.type === "number") s[f] = +el.value;
+          else s[f] = el.value;
+          if (f === "sourceKey" || f === "metric") tsFixSeries(s);
+          if (f === "sourceKey" || f === "metric" || f === "on") tsRenderSeries();
+          tsRedraw();
+        });
+        if (el.type === "color") el.addEventListener("input", () => { s.color = el.value; tsRedraw(); });
+      });
+    });
+  }
+  function tsAddSeries(){
+    const k = tsAllKeys(tsState.quarry)[0];
+    if (!k) return;
+    const s = {id: tsNextSeriesId++, on:true, color: TS_PALETTE[tsState.series.length % TS_PALETTE.length],
+      sourceKey:k, metric:"pass", sieve:"", sieve2:"", pct:10, typeOverride:"", sgSamples:[], ctrlSieves:[],
+      zWin:20, axis:"L", ma:1, spec:false, sigma:false};
+    tsFixSeries(s);
+    tsState.series.push(s);
+    tsRenderSeries(); tsRedraw();
+  }
+
+  /* ---------------- highlight table ---------------- */
+  const TS_HL_LABEL = {manual:"Manual date range", running:"Days products running", oos:"Out-of-spec days"};
+  function tsRenderHighlights(){
+    const body = $("tsHlBody");
+    if (!tsState.highlights.length){
+      body.innerHTML = '<tr><td colspan="6" class="ts-empty">No highlights. Add one above, or set drag to \u201cMark range\u201d and drag across the chart.</td></tr>';
+      return;
+    }
+    const prods = tsGradKeys(tsState.quarry);
+    body.innerHTML = tsState.highlights.map(h => {
+      let details;
+      if (h.kind === "manual"){
+        details = '<div class="ts-cellwrap"><input type="date" data-f="startISO" value="'+tsIso(h.start)+'">' +
+          '<span class="ts-hint">to</span><input type="date" data-f="endISO" value="'+tsIso(h.end)+'">' +
+          '<input type="text" data-f="note" value="'+tsEsc(h.note||"")+'" placeholder="why this range matters" style="flex:1;min-width:170px;"></div>';
+      } else {
+        details = tsMselCell("keys", h.keys||[], prods, k => tsSourceLabel(k), h.kind === "oos" ? "Any product" : null);
+        if (h.kind === "running" && (h.keys||[]).length > 1) details += '<div class="ts-hint" style="margin-top:2px;">days when all '+h.keys.length+' are running</div>';
+      }
+      return '<tr data-id="'+h.id+'" class="'+(h.on?"":"ts-off")+'">' +
+        '<td><input type="checkbox" data-f="on"'+(h.on?" checked":"")+' title="Show this highlight"></td>' +
+        '<td><input type="color" data-f="color" value="'+h.color+'"></td>' +
+        '<td>'+tsEsc(TS_HL_LABEL[h.kind])+'</td><td>'+details+'</td>' +
+        '<td style="text-align:center;">'+(h.kind==="manual" ? '<span class="ts-hint">band</span>' : '<input type="checkbox" data-f="shade"'+(h.shade?" checked":"")+'>')+'</td>' +
+        '<td><button class="mini ghost" data-f="del">\u00d7</button></td></tr>';
+    }).join("");
+
+    Array.from(body.querySelectorAll("tr")).forEach(tr => {
+      const h = tsState.highlights.find(x => x.id === +tr.dataset.id);
+      if (!h) return;
+      tsWireMsel(tr, h, "keys", () => { tsRenderHighlights(); tsRedraw(); });
+      Array.from(tr.querySelectorAll("[data-f]")).forEach(el => {
+        const f = el.dataset.f;
+        if (f === "del"){ el.addEventListener("click", () => { tsState.highlights = tsState.highlights.filter(x => x.id !== h.id); tsRenderHighlights(); tsRedraw(); }); return; }
+        el.addEventListener("change", () => {
+          if (f === "startISO") h.start = tsParseISO(el.value);
+          else if (f === "endISO") h.end = tsParseISO(el.value);
+          else if (el.type === "checkbox") h[f] = el.checked;
+          else h[f] = el.value;
+          if (f === "on") tsRenderHighlights();
+          tsRedraw();
+        });
+        if (el.type === "color") el.addEventListener("input", () => { h.color = el.value; tsRedraw(); });
+        if (el.type === "text")  el.addEventListener("input", () => { h.note = el.value; tsRedraw(); });
+      });
+    });
+  }
+  function tsAddHighlight(kind, start, end){
+    const h = {id: tsNextHlId++, on:true, kind, color: TS_PALETTE[tsState.highlights.length % TS_PALETTE.length],
+      shade:false, keys:[], note:"",
+      start: start || tsState.start,
+      end: end || Math.min(tsState.end, (start || tsState.start) + 6*TS_DAY)};
+    tsState.highlights.push(h);
+    tsRenderHighlights(); tsRedraw();
+    return h;
+  }
+
+  /* ---------------- filter table (ordered stack) ---------------- */
+  const TS_F_LABEL = {range:"Custom date range", running:"Days products running", oos:"Out-of-spec days"};
+  function tsRenderFilters(){
+    const body = $("tsFilterBody");
+    $("tsFilterBase").value = tsState.filterBase;
+    if (!tsState.filters.length){
+      body.innerHTML = '<tr><td colspan="7" class="ts-empty">No filters \u2014 every test in the date range is shown.</td></tr>';
+    } else {
+      const prods = tsGradKeys(tsState.quarry);
+      const last = tsState.filters.length - 1;
+      body.innerHTML = tsState.filters.map((f, i) => {
+        let details;
+        if (f.kind === "range"){
+          details = '<div class="ts-cellwrap"><input type="date" data-f="startISO" value="'+tsIso(f.start)+'">' +
+            '<span class="ts-hint">to</span><input type="date" data-f="endISO" value="'+tsIso(f.end)+'">' +
+            '<input type="text" data-f="note" value="'+tsEsc(f.note||"")+'" placeholder="reason (optional)" style="flex:1;min-width:150px;"></div>';
+        } else {
+          details = tsMselCell("keys", f.keys||[], prods, k => tsSourceLabel(k), f.kind === "oos" ? "Any product" : null);
+          if (f.kind === "running" && (f.keys||[]).length > 1) details += '<div class="ts-hint" style="margin-top:2px;">days when all '+f.keys.length+' are running</div>';
+          if (f.kind === "running" && !(f.keys||[]).length) details += '<div class="ts-hint" style="margin-top:2px;">pick at least one product</div>';
+        }
+        const n = f.on ? tsRuleDays(f).size : 0;
+        return '<tr data-id="'+f.id+'" class="'+(f.on?"":"ts-off")+'">' +
+          '<td><div class="ts-cellwrap" style="gap:1px;">' +
+            '<button class="mini ghost" data-f="up" title="Move earlier"'+(i===0?" disabled":"")+'>\u25b2</button>' +
+            '<button class="mini ghost" data-f="down" title="Move later"'+(i===last?" disabled":"")+'>\u25bc</button></div></td>' +
+          '<td><input type="checkbox" data-f="on"'+(f.on?" checked":"")+'></td>' +
+          '<td><select data-f="mode"><option value="show"'+(f.mode==="show"?" selected":"")+'>Show</option><option value="hide"'+(f.mode==="hide"?" selected":"")+'>Hide</option></select></td>' +
+          '<td>'+tsEsc(TS_F_LABEL[f.kind])+'</td><td>'+details+'</td>' +
+          '<td><span class="ts-hint">'+(f.on ? n+" day"+(n===1?"":"s") : "off")+'</span></td>' +
+          '<td><button class="mini ghost" data-f="del">\u00d7</button></td></tr>';
+      }).join("");
+      Array.from(body.querySelectorAll("tr")).forEach(tr => {
+        const f = tsState.filters.find(x => x.id === +tr.dataset.id);
+        if (!f) return;
+        tsWireMsel(tr, f, "keys", () => { tsRenderFilters(); tsRedraw(); });
+        Array.from(tr.querySelectorAll("[data-f]")).forEach(el => {
+          const fl = el.dataset.f;
+          if (fl === "del"){ el.addEventListener("click", () => { tsState.filters = tsState.filters.filter(x => x.id !== f.id); tsRenderFilters(); tsRedraw(); }); return; }
+          if (fl === "up" || fl === "down"){ el.addEventListener("click", () => tsMoveFilter(f.id, fl === "up" ? -1 : 1)); return; }
+          el.addEventListener("change", () => {
+            if (fl === "startISO") f.start = tsParseISO(el.value);
+            else if (fl === "endISO") f.end = tsParseISO(el.value);
+            else if (el.type === "checkbox") f[fl] = el.checked;
+            else f[fl] = el.value;
+            tsRenderFilters(); tsRedraw();
+          });
+          if (el.type === "text") el.addEventListener("input", () => { f.note = el.value; });
+        });
+      });
+    }
+    const on = tsState.filters.filter(x => x.on);
+    const baseTxt = tsState.filterBase === "all" ? "every day shown" : "no days shown";
+    let msg = "Every day in the range is shown. Add a rule to start narrowing.";
+    if (on.length){
+      const steps = on.map(f => (f.mode === "show" ? "show " : "hide ") +
+        (f.kind === "range" ? "that range" : f.kind === "oos" ? "out-of-spec days" : "days running")).join(" \u2192 ");
+      msg = "Start " + baseTxt + " \u2192 " + steps + ".  Rules run top to bottom; the last one matching a day wins.";
+    } else if (tsState.filterBase === "none"){
+      msg = "Starting with no days shown and no rules active \u2014 nothing will plot.";
+    }
+    $("tsFilterExplain").textContent = msg;
+  }
+  function tsMoveFilter(id, dir){
+    const i = tsState.filters.findIndex(f => f.id === id), j = i + dir;
+    if (i < 0 || j < 0 || j >= tsState.filters.length) return;
+    const tmp = tsState.filters[i]; tsState.filters[i] = tsState.filters[j]; tsState.filters[j] = tmp;
+    tsRenderFilters(); tsRedraw();
+  }
+  function tsAddFilter(kind){
+    const mode = kind === "range" ? "hide" : "show";
+    if (!tsState.filters.length) tsState.filterBase = (mode === "show" ? "none" : "all");
+    tsState.filters.push({id: tsNextFId++, on:true, mode, kind, keys:[], note:"",
+      start: tsState.start, end: Math.min(tsState.end, tsState.start + 6*TS_DAY)});
+    tsRenderFilters(); tsRedraw();
+  }
+
+  /* ---------------- chart ---------------- */
+  function tsNiceTicks(min, max, count){
+    if (!isFinite(min) || !isFinite(max)) return [0,1];
+    if (min === max){ min -= 1; max += 1; }
+    const raw = (max-min)/count, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw/mag;
+    const step = (norm<1.5?1:norm<3?2:norm<7?5:10) * mag;
+    const lo = Math.floor(min/step)*step, hi = Math.ceil(max/step)*step;
+    const out = []; for (let v=lo; v<=hi+step/2; v+=step) out.push(+v.toFixed(10));
+    return out;
+  }
+  function tsXTicks(a, b){
+    const days = (b-a)/TS_DAY, out = [];
+    if (days <= 70){
+      const step = days <= 21 ? 2 : 7;
+      const d = new Date(a); d.setUTCHours(0,0,0,0);
+      for (let ms=d.getTime(); ms<=b; ms+=step*TS_DAY) out.push(ms);
+    } else {
+      const st = new Date(a); let y = st.getUTCFullYear(), m = st.getUTCMonth();
+      const stepM = days > 760 ? 3 : days > 380 ? 2 : 1;
+      let ms = Date.UTC(y, m, 1); if (ms < a){ m += 1; ms = Date.UTC(y, m, 1); }
+      while (ms <= b){ out.push(ms); m += stepM; ms = Date.UTC(y, m, 1); }
+    }
+    return out;
+  }
+  function tsViewRange(){
+    if (!tsState.view) return [tsState.start, tsState.end];
+    return [tsClamp(tsState.view.x0, tsState.start, tsState.end), tsClamp(tsState.view.x1, tsState.start, tsState.end)];
+  }
+  function tsHlLabel(h){
+    if (h.kind === "oos") return (h.keys && h.keys.length) ? "OOS " + h.keys.map(k => tsSourceLabel(k)).join("+") : "Out of spec";
+    if (h.kind === "running") return (h.keys||[]).map(k => tsSourceLabel(k)).join(" + ") || "(no product)";
+    return h.note || "marked";
+  }
+  function tsAxisLabel(side, drawn){
+    const on = drawn.filter(b => b.s.axis === side);
+    const u = [];
+    on.forEach(b => {
+      let lbl;
+      if (b.s.metric === "pass" || b.s.metric === "between") lbl = "% PASSING";
+      else if (b.s.metric === "dx") lbl = "GRAIN SIZE (MM)";
+      else if (b.s.metric === "speccen") lbl = "% OF WAY TO SPEC LIMIT";
+      else if (b.s.metric === "zscore") lbl = "STD DEVIATIONS FROM RECENT MEAN";
+      else if (b.s.metric === "bulk" || b.s.metric === "appsg") lbl = "SPECIFIC GRAVITY";
+      else lbl = TS_METRICS[b.s.metric].label.toUpperCase();
+      if (u.indexOf(lbl) === -1) u.push(lbl);
+    });
+    return u.join("  /  ").slice(0, 58);
+  }
+
+  function tsRedraw(){
+    if (!tsState.booted) return;
+    TS_VISIBLE = tsComputeVisible();
+    const host = $("tsChartHost");
+    const active = tsState.series.filter(s => s.on);
+    const built = active.map(s => ({s, pts: tsBuildPoints(s)}));
+    const dropped = built.filter(b => !b.pts.length);
+    const drawn = built.filter(b => b.pts.length);
+    const vr = tsViewRange(), vx0 = vr[0], vx1 = vr[1];
+    $("tsResetZoomBtn").disabled = !tsState.view;
+
+    const ribbons = tsState.highlights.filter(h => h.on && h.kind !== "manual")
+      .map(h => ({h, days: Array.from(tsRuleDays(h)).filter(ms => TS_VISIBLE.has(ms)).sort((a,b)=>a-b)}));
+    const ribBlock = ribbons.length ? ribbons.length * TS_RIB_H + 8 : 0;
+    const H = TS_BASE_H + ribBlock;
+    const plotW = TS_W - TS_M.l - TS_M.r, plotH = H - TS_M.t - TS_M.b - ribBlock;
+    const X = ms => TS_M.l + (ms - vx0) / (vx1 - vx0) * plotW;
+    const invX = px => vx0 + (px - TS_M.l) / plotW * (vx1 - vx0);
+    const inView = p => p.ms >= vx0 && p.ms <= vx1;
+
+    function axisTicks(side){
+      let mn = Infinity, mx = -Infinity, any = false;
+      drawn.filter(b => b.s.axis === side).forEach(b => {
+        const vis = b.pts.filter(inView);
+        if (!vis.length) return;
+        any = true;
+        vis.forEach(p => { mn = Math.min(mn, p.v); mx = Math.max(mx, p.v); });
+        const m = TS_METRICS[b.s.metric];
+        if (b.s.spec && m.refLine !== undefined){ mn = Math.min(mn, 0); mx = Math.max(mx, m.refLine); }
+        if (b.s.spec){
+          const sp = tsSeriesSpec(b.s);
+          if (sp){
+            if (sp.lo !== null){ mn = Math.min(mn, sp.lo); mx = Math.max(mx, sp.lo); }
+            if (sp.hi !== null){ mn = Math.min(mn, sp.hi); mx = Math.max(mx, sp.hi); }
+          }
+        }
+      });
+      if (!any) return null;
+      const pad = (mx-mn)*0.08 || Math.max(0.02, Math.abs(mx)*0.02);
+      return tsNiceTicks(mn - pad, mx + pad, 6);
+    }
+    const tL = axisTicks("L"), tR = axisTicks("R");
+    const mk = t => { if (!t) return null; const lo = t[0], hi = t[t.length-1]; return v => TS_M.t + (1 - (v-lo)/(hi-lo)) * plotH; };
+    const YL = mk(tL), YR = mk(tR);
+
+    if (!drawn.length){
+      let why = "Add a series to plot.";
+      if (active.length){
+        if (!TS_VISIBLE.size) why = "Every day is filtered out. The Filter days rules start from \u201c" +
+          (tsState.filterBase === "all" ? "all days shown" : "no days shown") +
+          "\u201d and nothing is left showing \u2014 check the rule order, or that each rule has a product picked.";
+        else why = "No data for the current scope. Widen the date range, enable another sample type, or relax the day filters.";
+      }
+      host.innerHTML = '<div class="ts-chart-empty">'+tsEsc(why)+'</div>';
+      TS_CHART = null;
+      tsRenderStats([], vx0, vx1);
+      tsUpdateStatus(0, dropped);
+      return;
+    }
+
+    let svg = '<svg viewBox="0 0 '+TS_W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">';
+    svg += '<rect x="'+TS_M.l+'" y="'+TS_M.t+'" width="'+plotW+'" height="'+plotH+'" fill="#fff" stroke="#8b9092"/>';
+    svg += '<defs><pattern id="tsGapHatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">' +
+      '<rect width="6" height="6" fill="#eceeee"/><line x1="0" y1="0" x2="0" y2="6" stroke="#c9cdcf" stroke-width="2"/></pattern>' +
+      '<pattern id="tsHideHatch" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse">' +
+      '<rect width="7" height="7" fill="#e4e6e7"/><line x1="0" y1="0" x2="0" y2="7" stroke="#c2c6c8" stroke-width="2.5"/></pattern>' +
+      '<clipPath id="tsPlotClip"><rect x="'+TS_M.l+'" y="'+TS_M.t+'" width="'+plotW+'" height="'+plotH+'"/></clipPath></defs>';
+    svg += '<g id="tsPlotG" clip-path="url(#tsPlotClip)">';
+
+    // hidden days (walk day-aligned so a fractional zoom window can't mis-flag every step)
+    {
+      let run = null;
+      const a0 = Math.floor(vx0 / TS_DAY) * TS_DAY;
+      for (let ms = a0; ms <= vx1 + TS_DAY; ms += TS_DAY){
+        const hidden = ms <= vx1 && !TS_VISIBLE.has(ms);
+        if (hidden && run === null) run = ms;
+        if (!hidden && run !== null){
+          svg += '<rect x="'+X(run).toFixed(1)+'" y="'+TS_M.t+'" width="'+Math.max(1, X(ms)-X(run)).toFixed(1)+'" height="'+plotH+'" fill="url(#tsHideHatch)" opacity="0.85"/>';
+          run = null;
+        }
+      }
+    }
+    ribbons.filter(r => r.h.shade).forEach(r => r.days.forEach(ms => {
+      if (ms < vx0 - TS_DAY || ms > vx1) return;
+      svg += '<rect x="'+X(ms).toFixed(1)+'" y="'+TS_M.t+'" width="'+Math.max(1.2, X(ms+TS_DAY)-X(ms)).toFixed(1)+'" height="'+plotH+'" fill="'+r.h.color+'" opacity="0.12"/>';
+    }));
+    if (tsState.toggles.gapBands && tsState.gapDays > 0){
+      const allMs = Array.from(new Set([].concat.apply([], drawn.map(b => b.pts.map(p => p.ms))))).sort((a,b)=>a-b);
+      for (let i=0; i<allMs.length-1; i++){
+        if (allMs[i+1] - allMs[i] > tsState.gapDays * TS_DAY){
+          const a = allMs[i] + TS_DAY, b = allMs[i+1];
+          svg += '<rect x="'+X(a).toFixed(1)+'" y="'+TS_M.t+'" width="'+Math.max(1, X(b)-X(a)).toFixed(1)+'" height="'+plotH+'" fill="url(#tsGapHatch)" opacity="0.7"/>';
+        }
+      }
+    }
+    tsState.highlights.filter(h => h.on && h.kind === "manual").forEach(h => {
+      svg += '<rect x="'+X(h.start).toFixed(1)+'" y="'+TS_M.t+'" width="'+Math.max(2, X(h.end+TS_DAY)-X(h.start)).toFixed(1)+'" height="'+plotH+'" fill="'+h.color+'" opacity="0.13"/>';
+      svg += '<line x1="'+X(h.start).toFixed(1)+'" y1="'+TS_M.t+'" x2="'+X(h.start).toFixed(1)+'" y2="'+(TS_M.t+plotH)+'" stroke="'+h.color+'" stroke-width="1.2" opacity="0.85"/>';
+      svg += '<text x="'+(X(h.start)+3).toFixed(1)+'" y="'+(TS_M.t+11)+'" font-size="9" fill="'+h.color+'">'+tsEsc((h.note||"note").slice(0,26))+'</text>';
+    });
+    const xt = tsXTicks(vx0, vx1);
+    xt.forEach(ms => { svg += '<line x1="'+X(ms).toFixed(1)+'" y1="'+TS_M.t+'" x2="'+X(ms).toFixed(1)+'" y2="'+(TS_M.t+plotH)+'" stroke="#e2e5e6"/>'; });
+    if (tL) tL.forEach(v => { svg += '<line x1="'+TS_M.l+'" y1="'+YL(v).toFixed(1)+'" x2="'+(TS_M.l+plotW)+'" y2="'+YL(v).toFixed(1)+'" stroke="#e2e5e6"/>'; });
+
+    drawn.forEach(b => {
+      const Y = b.s.axis === "L" ? YL : YR; if (!Y) return;
+      const m = TS_METRICS[b.s.metric];
+      if (b.s.spec && m.refLine !== undefined){
+        svg += '<line x1="'+TS_M.l+'" y1="'+Y(m.refLine).toFixed(1)+'" x2="'+(TS_M.l+plotW)+'" y2="'+Y(m.refLine).toFixed(1)+'" stroke="'+b.s.color+'" stroke-width="1.1" stroke-dasharray="6 4" opacity="0.75"/>';
+        svg += '<text x="'+(TS_M.l+4)+'" y="'+(Y(m.refLine)-3).toFixed(1)+'" font-size="8.5" fill="'+b.s.color+'">'+(b.s.metric==="zscore"?"3 SIGMA":"AT SPEC LIMIT")+'</text>';
+      }
+      if (b.s.spec){
+        const sp = tsSeriesSpec(b.s);
+        if (sp) [["lo",sp.lo],["hi",sp.hi]].forEach(pair => {
+          const wch = pair[0], v = pair[1];
+          if (v === null) return;
+          svg += '<line x1="'+TS_M.l+'" y1="'+Y(v).toFixed(1)+'" x2="'+(TS_M.l+plotW)+'" y2="'+Y(v).toFixed(1)+'" stroke="'+b.s.color+'" stroke-width="1.1" stroke-dasharray="6 4" opacity="0.75"/>';
+          svg += '<text x="'+(TS_M.l+4)+'" y="'+(Y(v)-3).toFixed(1)+'" font-size="8.5" fill="'+b.s.color+'">SPEC '+(wch==="lo"?"MIN":"MAX")+' '+v+'</text>';
+        });
+      }
+      if (b.s.sigma){
+        const vs = b.pts.filter(inView).map(p => p.v);
+        if (vs.length > 1){
+          const mean = vs.reduce((a,c)=>a+c,0)/vs.length;
+          const sd = Math.sqrt(vs.reduce((a,c)=>a+(c-mean)*(c-mean),0)/(vs.length-1));
+          [mean-2*sd, mean+2*sd].forEach(v => {
+            svg += '<line x1="'+TS_M.l+'" y1="'+Y(v).toFixed(1)+'" x2="'+(TS_M.l+plotW)+'" y2="'+Y(v).toFixed(1)+'" stroke="'+b.s.color+'" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
+          });
+        }
+      }
+    });
+
+    drawn.forEach(b => {
+      const Y = b.s.axis === "L" ? YL : YR; if (!Y) return;
+      const useMa = b.s.ma > 1;
+      if (TS_METRICS[b.s.metric].bar){
+        const bw = Math.max(1.5, Math.min(9, plotW / Math.max(30, (vx1-vx0)/TS_DAY)));
+        const base = Y((b.s.axis === "L" ? tL : tR)[0]);
+        b.pts.forEach(p => {
+          const y = Y(p.v);
+          svg += '<rect x="'+(X(p.ms)-bw/2).toFixed(1)+'" y="'+Math.min(y,base).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.abs(base-y).toFixed(1)+'" fill="'+b.s.color+'" opacity="0.35"/>';
+        });
+        return;
+      }
+      const segs = []; let cur = [];
+      b.pts.forEach((p, i) => {
+        if (i > 0 && tsState.gapDays > 0 && (p.ms - b.pts[i-1].ms) > tsState.gapDays * TS_DAY){ segs.push(cur); cur = []; }
+        cur.push(p);
+      });
+      if (cur.length) segs.push(cur);
+      segs.forEach(seg => {
+        if (seg.length < 2) return;
+        const d = seg.map((p,i) => (i?"L":"M") + X(p.ms).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+        svg += '<path d="'+d+'" fill="none" stroke="'+b.s.color+'" stroke-width="'+(useMa?1:1.7)+'" opacity="'+(useMa?0.28:1)+'" stroke-linejoin="round"/>';
+        if (useMa){
+          const dm = seg.map((p,i) => (i?"L":"M") + X(p.ms).toFixed(1) + " " + Y(p.ma).toFixed(1)).join(" ");
+          svg += '<path d="'+dm+'" fill="none" stroke="'+b.s.color+'" stroke-width="2.1" stroke-linejoin="round"/>';
+        }
+      });
+      if (tsState.toggles.points) b.pts.forEach(p => {
+        const hasNote = p.notes && p.notes.length;
+        svg += '<circle cx="'+X(p.ms).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="'+(hasNote?3.1:(useMa?1.6:2.2))+'" fill="'+b.s.color+'" opacity="'+((useMa&&!hasNote)?0.45:0.9)+'"'+(hasNote?' stroke="#1c1f21" stroke-width="0.7"':'')+'/>';
+      });
+    });
+    svg += '</g>';
+
+    svg += '<g id="tsXAxisG">';
+    xt.forEach(ms => {
+      const px = X(ms);
+      svg += '<line x1="'+px.toFixed(1)+'" y1="'+(TS_M.t+plotH)+'" x2="'+px.toFixed(1)+'" y2="'+(TS_M.t+plotH+4)+'" stroke="#8b9092"/>';
+      svg += '<text x="'+px.toFixed(1)+'" y="'+(TS_M.t+plotH+17)+'" font-size="9.5" fill="#454b4e" text-anchor="middle">'+tsEsc((vx1-vx0)/TS_DAY<=70?tsFmtShort(ms):tsFmtMonth(ms))+'</text>';
+    });
+    svg += '</g>';
+    if (tL){
+      tL.forEach(v => { svg += '<text x="'+(TS_M.l-6)+'" y="'+(YL(v)+3).toFixed(1)+'" font-size="9.5" fill="#454b4e" text-anchor="end">'+v+'</text>'; });
+      svg += '<text transform="translate(14,'+(TS_M.t+plotH/2)+') rotate(-90)" font-size="10" fill="#1c1f21" text-anchor="middle">'+tsEsc(tsAxisLabel("L", drawn))+'</text>';
+    }
+    if (tR){
+      tR.forEach(v => {
+        svg += '<text x="'+(TS_M.l+plotW+6)+'" y="'+(YR(v)+3).toFixed(1)+'" font-size="9.5" fill="#454b4e" text-anchor="start">'+v+'</text>';
+        svg += '<line x1="'+(TS_M.l+plotW)+'" y1="'+YR(v).toFixed(1)+'" x2="'+(TS_M.l+plotW+3)+'" y2="'+YR(v).toFixed(1)+'" stroke="#8b9092"/>';
+      });
+      svg += '<text transform="translate('+(TS_W-12)+','+(TS_M.t+plotH/2)+') rotate(-90)" font-size="10" fill="#1c1f21" text-anchor="middle">'+tsEsc(tsAxisLabel("R", drawn))+'</text>';
+    }
+
+    if (ribbons.length){
+      let ry = TS_M.t + plotH + 24;
+      ribbons.forEach(r => {
+        svg += '<rect x="'+TS_M.l+'" y="'+ry+'" width="'+plotW+'" height="'+(TS_RIB_H-3)+'" fill="#f2f3f3" stroke="#dfe2e3" stroke-width="0.5"/>';
+        r.days.forEach(ms => {
+          if (ms < vx0 - TS_DAY || ms > vx1) return;
+          const x = tsClamp(X(ms), TS_M.l, TS_M.l+plotW);
+          const wd = Math.max(1.4, Math.min(X(ms+TS_DAY)-X(ms), TS_M.l+plotW-x));
+          svg += '<rect x="'+x.toFixed(1)+'" y="'+ry+'" width="'+wd.toFixed(1)+'" height="'+(TS_RIB_H-3)+'" fill="'+r.h.color+'" opacity="0.85"/>';
+        });
+        svg += '<text x="'+(TS_M.l-6)+'" y="'+(ry+TS_RIB_H-6)+'" font-size="8" fill="#454b4e" text-anchor="end">'+tsEsc(tsHlLabel(r.h).slice(0,11))+'</text>';
+        ry += TS_RIB_H;
+      });
+      svg += '<text x="'+(TS_M.l+plotW/2)+'" y="'+(H-6)+'" font-size="10.5" fill="#1c1f21" text-anchor="middle">SAMPLE DATE  \u00b7  RIBBON = HIGHLIGHTED DAYS</text>';
+    } else {
+      svg += '<text x="'+(TS_M.l+plotW/2)+'" y="'+(H-8)+'" font-size="10.5" fill="#1c1f21" text-anchor="middle">SAMPLE DATE</text>';
+    }
+
+    const legend = drawn.map(b => ({c: b.s.color, t: tsSeriesLabel(b.s) + (b.s.axis === "R" ? " (R)" : "")}));
+    const maxLen = Math.max.apply(null, legend.map(l => l.t.length));
+    const boxW = Math.min(plotW - 16, 34 + maxLen * 5.85);
+    let ly = TS_M.t + 8, lx = TS_M.l + 10;
+    svg += '<rect x="'+(lx-6)+'" y="'+(ly-10)+'" width="'+boxW.toFixed(1)+'" height="'+(legend.length*13+8)+'" fill="#ffffff" fill-opacity="0.88" stroke="#b7bbbd"/>';
+    legend.forEach(l => {
+      svg += '<line x1="'+lx+'" y1="'+(ly-2.5)+'" x2="'+(lx+14)+'" y2="'+(ly-2.5)+'" stroke="'+l.c+'" stroke-width="2.4"/>';
+      svg += '<text x="'+(lx+19)+'" y="'+(ly+1)+'" font-size="9.5" fill="#1c1f21">'+tsEsc(l.t)+'</text>';
+      ly += 13;
+    });
+
+    svg += '<line id="tsCrosshair" x1="0" y1="'+TS_M.t+'" x2="0" y2="'+(TS_M.t+plotH)+'" stroke="#1c1f21" stroke-width="0.8" opacity="0" stroke-dasharray="3 3"/>';
+    svg += '<rect id="tsDragRect" x="0" y="'+TS_M.t+'" width="0" height="'+plotH+'" fill="#3d5a73" opacity="0"/>';
+    svg += '<rect id="tsHitArea" x="'+TS_M.l+'" y="'+TS_M.t+'" width="'+plotW+'" height="'+plotH+'" fill="transparent" style="cursor:crosshair"/>';
+    svg += '</svg>';
+    host.innerHTML = svg;
+
+    TS_CHART = {X, invX, YL, YR, drawn, plotW, plotH, vx0, vx1, H};
+    tsWireChart();
+    tsRenderStats(drawn, vx0, vx1);
+    tsUpdateStatus(drawn.reduce((a,b) => a + b.pts.filter(inView).length, 0), dropped);
+  }
+
+  /* ---------------- interaction ---------------- */
+  function tsWireChart(){
+    const svg = document.querySelector("#tsChartHost svg");
+    if (!svg || !TS_CHART) return;
+    const hit = svg.querySelector("#tsHitArea"), cross = svg.querySelector("#tsCrosshair"), dragR = svg.querySelector("#tsDragRect");
+    const tip = $("tsTooltip"), wrap = $("tsChartWrap");
+    const plotG = svg.querySelector("#tsPlotG"), xAxisG = svg.querySelector("#tsXAxisG");
+    let dragging = false, dragStart = null, panPx = 0;
+    const toSvgX = e => { const r = svg.getBoundingClientRect(); return (e.clientX - r.left) / r.width * TS_W; };
+    hit.style.cursor = tsState.dragMode === "pan" ? "grab" : "crosshair";
+    const panLimits = () => {
+      const vr = tsViewRange(), a = vr[0], b = vr[1], span = b - a;
+      return {max: (a - tsState.start)/span * TS_CHART.plotW, min: -(tsState.end - b)/span * TS_CHART.plotW};
+    };
+    const applyPan = px => {
+      plotG.setAttribute("transform", "translate("+px.toFixed(1)+",0)");
+      xAxisG.setAttribute("transform", "translate("+px.toFixed(1)+",0)");
+    };
+
+    hit.addEventListener("wheel", e => {
+      e.preventDefault();
+      const vr = tsViewRange(), a = vr[0], b = vr[1];
+      const at = TS_CHART.invX(toSvgX(e));
+      const f = e.deltaY < 0 ? 1/1.2 : 1.2;
+      let n0 = at - (at-a)*f, n1 = at + (b-at)*f;
+      if (n1 - n0 < TS_DAY*3){ const c = (n0+n1)/2; n0 = c - TS_DAY*1.5; n1 = c + TS_DAY*1.5; }
+      n0 = Math.max(tsState.start, n0); n1 = Math.min(tsState.end, n1);
+      tsState.view = (n0 <= tsState.start && n1 >= tsState.end) ? null : {x0:n0, x1:n1};
+      tsRedraw();
+    }, {passive:false});
+
+    hit.addEventListener("pointermove", e => {
+      const sx = toSvgX(e), ms = TS_CHART.invX(sx);
+      cross.setAttribute("x1", sx); cross.setAttribute("x2", sx); cross.setAttribute("opacity", "0.55");
+      if (dragging && tsState.dragMode === "pan"){
+        const lim = panLimits();
+        panPx = tsClamp(sx - dragStart, lim.min, lim.max);
+        applyPan(panPx);
+        tip.style.display = "none";
+        cross.setAttribute("opacity", "0");
+        return;
+      }
+      if (dragging && dragStart !== null){
+        const a = Math.min(dragStart, sx), b = Math.max(dragStart, sx);
+        dragR.setAttribute("x", a); dragR.setAttribute("width", b-a);
+        dragR.setAttribute("opacity", tsState.dragMode === "zoom" ? "0.22" : "0.16");
+      }
+      const rows = []; let anchor = null;
+      TS_CHART.drawn.forEach(b => {
+        let best = null, bd = Infinity;
+        b.pts.forEach(p => { const dd = Math.abs(p.ms - ms); if (dd < bd){ bd = dd; best = p; } });
+        if (best && bd < (TS_CHART.vx1 - TS_CHART.vx0)/TS_CHART.plotW * 14){
+          rows.push({c:b.s.color, t:tsSeriesLabel(b.s), p:best, m:b.s.metric});
+          if (anchor === null || Math.abs(best.ms - ms) < Math.abs(anchor - ms)) anchor = best.ms;
+        }
+      });
+      if (!rows.length){ tip.style.display = "none"; return; }
+      let html = '<div class="ts-tt-date">'+tsFmtShort(anchor)+'</div>';
+      rows.forEach(r => {
+        const m = TS_METRICS[r.m];
+        html += '<div class="ts-tt-row"><span class="nm"><span class="chip" style="background:'+r.c+'"></span>'+tsEsc(r.t)+'</span><span class="vl">'+tsNum(r.p.v, m.dec)+(m.unit?" "+m.unit:"")+'</span></div>';
+        if ((r.m === "speccen" || r.m === "zscore") && r.p.extra) html += '<div class="ts-tt-sub" style="margin-left:14px;">worst sieve: '+tsEsc(r.p.extra)+'</div>';
+        if (r.p.sub) html += '<div class="ts-tt-sub" style="margin-left:14px;">'+tsEsc(r.p.sub)+'</div>';
+      if (r.p.hours !== null && r.p.hours !== undefined) html += '<div class="ts-tt-sub" style="margin-left:14px;">'+tsNum(r.p.hours,1)+' hrs in water</div>';
+      });
+      const techs = []; rows.forEach(r => { if (r.p.tech && techs.indexOf(r.p.tech) === -1) techs.push(r.p.tech); });
+      if (techs.length) html += '<div class="ts-tt-sub" style="margin-top:4px;">'+tsEsc(techs.join(", "))+'</div>';
+      if (tsState.agg === "day" && rows.some(r => r.p.n > 1)) html += '<div class="ts-tt-sub">day average of multiple tests</div>';
+      const seen = {};
+      rows.forEach(r => (r.p.notes||[]).forEach(n => {
+        if (seen[n]) return; seen[n] = 1;
+        html += '<div class="ts-tt-note"><b>Test note:</b> '+tsEsc(n)+'</div>';
+      }));
+      tsState.highlights.filter(h => h.on && h.kind === "manual" && anchor >= h.start && anchor <= h.end + TS_DAY - 1)
+        .forEach(h => { html += '<div class="ts-tt-note">\u25ae '+tsEsc(h.note||"marked range")+'</div>'; });
+      const rib = tsState.highlights.filter(h => h.on && h.kind !== "manual" && tsRuleDays(h).has(anchor));
+      if (rib.length) html += '<div class="ts-tt-note">'+tsEsc(rib.map(tsHlLabel).join(" \u00b7 "))+'</div>';
+      tip.innerHTML = html;
+      const r = svg.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+      const px = (TS_CHART.X(anchor)/TS_W) * r.width + (r.left - wr.left);
+      tip.style.display = "block";
+      tip.style.left = Math.max(0, Math.min(wr.width - tip.offsetWidth - 2, px + 12)) + "px";
+      tip.style.top = Math.max(0, (e.clientY - wr.top) - 10) + "px";
+    });
+
+    hit.addEventListener("pointerleave", () => { cross.setAttribute("opacity","0"); $("tsTooltip").style.display = "none"; });
+    hit.addEventListener("pointerdown", e => {
+      dragging = true; dragStart = toSvgX(e); panPx = 0;
+      if (tsState.dragMode === "pan") hit.style.cursor = "grabbing";
+      try { hit.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    hit.addEventListener("pointerup", e => {
+      if (!dragging) return;
+      dragging = false;
+      const a = Math.min(dragStart, toSvgX(e)), b = Math.max(dragStart, toSvgX(e));
+      dragR.setAttribute("opacity", "0");
+      if (tsState.dragMode === "pan"){
+        hit.style.cursor = "grab";
+        if (Math.abs(panPx) > 0.5){
+          const vr = tsViewRange(), v0 = vr[0], v1 = vr[1], span = v1 - v0;
+          const dxMs = panPx / TS_CHART.plotW * span;
+          const n0 = tsClamp(v0 - dxMs, tsState.start, tsState.end - span);
+          tsState.view = {x0:n0, x1:n0+span};
+          tsRedraw();
+        } else applyPan(0);
+        dragStart = null; panPx = 0; return;
+      }
+      if (b - a < 3){ dragStart = null; return; }
+      if (tsState.dragMode === "zoom"){
+        const n0 = Math.max(tsState.start, TS_CHART.invX(a)), n1 = Math.min(tsState.end, TS_CHART.invX(b));
+        if (n1 - n0 > TS_DAY){ tsState.view = {x0:n0, x1:n1}; tsRedraw(); }
+      } else {
+        const s0 = Math.round(TS_CHART.invX(a)/TS_DAY)*TS_DAY, s1 = Math.round(TS_CHART.invX(b)/TS_DAY)*TS_DAY;
+        tsAddHighlight("manual", s0, s1);
+        const inp = document.querySelector('#tsHlBody tr:last-child input[data-f="note"]');
+        if (inp) inp.focus();
+      }
+      dragStart = null; panPx = 0;
+    });
+  }
+
+  /* ---------------- stats ---------------- */
+  let tsLastStats = [];
+  function tsRenderStats(drawn, vx0, vx1){
+    const body = $("tsStatsBody");
+    const use = drawn.map(b => ({s:b.s, pts:b.pts.filter(p => p.ms >= vx0 && p.ms <= vx1)})).filter(b => b.pts.length);
+    tsLastStats = [];
+    if (!use.length){
+      body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--ink-faint);padding:14px;">No series plotted.</td></tr>';
+      return;
+    }
+    body.innerHTML = use.map(b => {
+      const vs = b.pts.map(p => p.raw), n = vs.length;
+      const mean = vs.reduce((a,c)=>a+c,0)/n;
+      const sd = n > 1 ? Math.sqrt(vs.reduce((a,c)=>a+(c-mean)*(c-mean),0)/(n-1)) : 0;
+      const m = TS_METRICS[b.s.metric], dec = m.dec, sp = tsSeriesSpec(b.s);
+      let specTxt = "\u2014", inSpec = "\u2014", cpk = "\u2014", cpkCls = "";
+      if (sp){
+        specTxt = (sp.lo === null ? "*" : sp.lo) + "\u2013" + (sp.hi === null ? "*" : sp.hi);
+        const ok = vs.filter(v => (sp.lo === null || v >= sp.lo - 1e-9) && (sp.hi === null || v <= sp.hi + 1e-9)).length;
+        inSpec = (ok/n*100).toFixed(1) + "%";
+        if (sp.lo !== null && sp.hi !== null && sp.hi > sp.lo && sd > 0){
+          const k = Math.min((sp.hi-mean)/(3*sd), (mean-sp.lo)/(3*sd));
+          cpk = k.toFixed(2); cpkCls = k < 1 ? "ts-bad" : (k >= 1.33 ? "ts-good" : "");
+        } else if (sp.hi !== null && sp.lo === null && sd > 0){
+          const k = (sp.hi-mean)/(3*sd); cpk = k.toFixed(2)+"*"; cpkCls = k < 1 ? "ts-bad" : (k >= 1.33 ? "ts-good" : "");
+        }
+      } else if (m.refLine !== undefined){
+        specTxt = (b.s.metric === "zscore" ? "3\u03c3" : "limit @ " + m.refLine);
+        inSpec = (vs.filter(v => v <= m.refLine).length/n*100).toFixed(1) + "%";
+      }
+      let trend = "\u2014", per30 = null;
+      if (n > 2){
+        const t0 = b.pts[0].ms, xs = b.pts.map(p => (p.ms - t0)/TS_DAY);
+        const xm = xs.reduce((a,c)=>a+c,0)/n;
+        const den = xs.reduce((a,c)=>a+(c-xm)*(c-xm),0);
+        if (den > 0){
+          const slope = xs.reduce((a,c,i)=>a+(c-xm)*(vs[i]-mean),0)/den;
+          per30 = slope*30;
+          const thr = 0.02*Math.max(1, Math.abs(mean));
+          trend = (per30 > thr ? "\u25b2" : per30 < -thr ? "\u25bc" : "\u25ac") + " " + (per30>=0?"+":"") + per30.toFixed(dec) + " / 30d";
+        }
+      }
+      tsLastStats.push({label: tsSeriesLabel(b.s), n, mean, sd, min:Math.min.apply(null,vs), max:Math.max.apply(null,vs), specTxt, inSpec, cpk, trend, per30, dec});
+      return '<tr><td class="left"><span class="ts-sw" style="background:'+b.s.color+'"></span>'+tsEsc(tsSeriesLabel(b.s))+'</td>' +
+        '<td>'+n+'</td><td>'+tsNum(mean,dec)+'</td><td>'+tsNum(sd,dec+1)+'</td><td>'+tsNum(Math.min.apply(null,vs),dec)+'</td><td>'+tsNum(Math.max.apply(null,vs),dec)+'</td>' +
+        '<td>'+tsEsc(specTxt)+'</td><td>'+inSpec+'</td><td class="'+cpkCls+'">'+cpk+'</td><td class="left">'+trend+'</td></tr>';
+    }).join("");
+  }
+
+  function tsUpdateStatus(nPoints, dropped){
+    const days = Math.round((tsState.end - tsState.start)/TS_DAY) + 1;
+    const vis = TS_VISIBLE ? TS_VISIBLE.size : days;
+    const gradN = allTests.filter(t => t.Quarry === tsState.quarry).length;
+    const sgN = (tsSgRows || []).filter(r => r.quarry === tsState.quarry).length;
+    $("tsScopeStatus").textContent =
+      gradN.toLocaleString() + " gradations cached" + (tsSgStatus === "loaded" ? " + " + sgN.toLocaleString() + " SG tests" : "") +
+      " \u00b7 " + vis + " of " + days + " days shown \u00b7 " + nPoints.toLocaleString() + " points in view";
+    const hints = [];
+    const nf = tsState.filters.filter(f => f.on).length;
+    if (nf) hints.push(nf + " filter" + (nf>1?"s":"") + " active \u00b7 " + (days - vis) + " days removed");
+    if (tsState.view) hints.push("zoomed");
+    const mixed = tsState.series.filter(s => s.on && tsIsSG(s.sourceKey) && tsSamplesFor(s).length > 1);
+    if (mixed.length) hints.push("SG series mixing " + tsSamplesFor(mixed[0]).length + " samples");
+    if (tsSgStatus === "error") hints.push("SG list unavailable");
+    $("tsModeHint").textContent = hints.join("  \u00b7  ");
+    const cs = $("tsChartStatus");
+    cs.textContent = (dropped && dropped.length) ? dropped.length + " not plotted: " + dropped.map(d => {
+      if (d.s.metric === "fm") return tsSeriesLabel(d.s) + " (sieve set incomplete for FM)";
+      if (d.s.metric === "zscore") return tsSeriesLabel(d.s) + " (needs 5+ prior tests per sieve)";
+      if (d.s.metric === "speccen" || d.s.metric === "oos") return tsSeriesLabel(d.s) + " (no spec on this product)";
+      if (["dx","cu","cc"].indexOf(d.s.metric) !== -1) return tsSeriesLabel(d.s) + " (D-value outside tested range)";
+      return tsSeriesLabel(d.s) + " (no data)";
+    }).join(" \u00b7 ") : "";
+    const vr = tsViewRange();
+    $("tsChartTitle").textContent = tsState.quarry + " \u2014 " + tsFmtShort(vr[0]) + " to " + tsFmtShort(vr[1]) + (tsState.view ? "  (zoomed)" : "");
+  }
+
+  /* ---------------- export ---------------- */
+  // Filenames use spaces, not underscores. (The app's own sanitizeFilenamePart
+  // substitutes underscores, so Time Series exports use their own cleaner.)
+  function tsSafeName(s){
+    return String(s || "").replace(/[\\/:*?"<>|]+/g, " ").replace(/_+/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function tsExportBaseName(){
+    const vr = tsViewRange();
+    const dstr = ms => { const d = new Date(ms); return (d.getUTCMonth()+1) + "-" + d.getUTCDate() + "-" + d.getUTCFullYear(); };
+    return tsSafeName("Time Series " + tsState.quarry + " " + dstr(vr[0]) + " to " + dstr(vr[1]));
+  }
+  function tsSvgMarkup(){
+    const svg = document.querySelector("#tsChartHost svg");
+    if (!svg) return null;
+    const clone = svg.cloneNode(true);
+    ["tsHitArea","tsCrosshair","tsDragRect"].forEach(id => {
+      const el = clone.querySelector("#"+id);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    });
+    const h = TS_CHART ? TS_CHART.H : TS_BASE_H;
+    clone.setAttribute("width", TS_W);
+    clone.setAttribute("height", h);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    // Opaque background so PNG/PDF don't come out transparent
+    const bg = '<rect x="0" y="0" width="'+TS_W+'" height="'+h+'" fill="#ffffff"/>';
+    const inner = clone.innerHTML;
+    clone.innerHTML = bg + inner;
+    return {markup: '<?xml version="1.0" encoding="UTF-8"?>' + clone.outerHTML, width: TS_W, height: h};
+  }
+  function tsExportSvg(){
+    const s = tsSvgMarkup();
+    if (!s){ showError("Nothing to export — draw a chart first."); return; }
+    downloadBlob(new Blob([s.markup], {type:"image/svg+xml;charset=utf-8"}), tsExportBaseName() + ".svg");
+  }
+  function tsChartPngDataUrl(scale){
+    return new Promise((resolve, reject) => {
+      const s = tsSvgMarkup();
+      if (!s){ reject(new Error("Nothing to export — draw a chart first.")); return; }
+      const sc = scale || 2;
+      const img = new Image();
+      const blob = new Blob([s.markup], {type:"image/svg+xml;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      // Guard: if the browser never fires load or error on the blob, fail loudly
+      // instead of leaving the user with a button that silently did nothing.
+      const timer = setTimeout(() => { try { URL.revokeObjectURL(url); } catch(_){}
+        reject(new Error("Timed out while rasterizing the chart.")); }, 15000);
+      img.onload = () => {
+        clearTimeout(timer);
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = s.width * sc; canvas.height = s.height * sc;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          resolve({dataUrl: canvas.toDataURL("image/png"), width: s.width, height: s.height, canvas});
+        } catch(err){ URL.revokeObjectURL(url); reject(err); }
+      };
+      img.onerror = () => { clearTimeout(timer); URL.revokeObjectURL(url); reject(new Error("Could not rasterize the chart.")); };
+      img.src = url;
+    });
+  }
+  function tsBusy(id, on, label){
+    const b = $(id);
+    if (!b) return;
+    if (on){ b.dataset.label = b.textContent; b.textContent = label || "\u2026"; b.disabled = true; }
+    else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
+  }
+  async function tsExportPng(){
+    tsBusy("tsExportPng", true, "PNG\u2026");
+    try {
+      const r = await tsChartPngDataUrl(2);
+      r.canvas.toBlob(b => downloadBlob(b, tsExportBaseName() + ".png"), "image/png");
+    } catch(e){ showError("PNG export failed: " + e.message); }
+    finally { tsBusy("tsExportPng", false); }
+  }
+  function tsCsvEscape(v){
+    const s = (v === null || v === undefined) ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function tsExportCsv(){
+    if (!TS_CHART || !TS_CHART.drawn.length){ showError("Nothing to export — draw a chart first."); return; }
+    const vr = tsViewRange();
+    const lines = [];
+    lines.push(["Quarry","Series","Metric","Date","Value","Moving avg","Tests in point","Type / sample","Worst sieve","Hrs in water","Technician","Notes"].join(","));
+    TS_CHART.drawn.forEach(b => {
+      const label = tsSeriesLabel(b.s);
+      const metric = TS_METRICS[b.s.metric].label;
+      const dec = TS_METRICS[b.s.metric].dec;
+      b.pts.filter(p => p.ms >= vr[0] && p.ms <= vr[1]).forEach(p => {
+        lines.push([
+          tsCsvEscape(tsState.quarry), tsCsvEscape(label), tsCsvEscape(metric), tsIso(p.ms),
+          (p.raw === null || p.raw === undefined) ? "" : p.raw.toFixed(dec),
+          (p.ma === undefined) ? "" : p.ma.toFixed(dec),
+          p.n || 1, tsCsvEscape(p.sub || ""), tsCsvEscape(p.extra || ""),
+          (p.hours === null || p.hours === undefined) ? "" : p.hours.toFixed(1),
+          tsCsvEscape(p.tech || ""), tsCsvEscape((p.notes||[]).join(" | "))
+        ].join(","));
+      });
+    });
+    lines.push("");
+    lines.push(["Series","n","Mean","Std dev","Min","Max","Spec","% in spec","Cpk","Trend / 30d"].join(","));
+    tsLastStats.forEach(st => {
+      lines.push([tsCsvEscape(st.label), st.n, st.mean.toFixed(st.dec), st.sd.toFixed(st.dec+1),
+        st.min.toFixed(st.dec), st.max.toFixed(st.dec), tsCsvEscape(st.specTxt), tsCsvEscape(st.inSpec),
+        tsCsvEscape(st.cpk), (st.per30 === null ? "" : st.per30.toFixed(st.dec))].join(","));
+    });
+    downloadBlob(new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"}), tsExportBaseName() + ".csv");
+  }
+  async function tsExportPdf(){
+    tsBusy("tsExportPdf", true, "PDF\u2026");
+    try {
+      const img = await tsChartPngDataUrl(3);
+      tsExportPdfWithImage(img);
+    } catch(e){
+      showError("PDF export failed: " + e.message);
+    }
+    finally { tsBusy("tsExportPdf", false); }
+  }
+  function tsExportPdfWithImage(img){
+    {
+      const doc = new jspdf.jsPDF({unit:"in", format:"letter", orientation:"landscape"});
+      const pageW = 11, pageH = 8.5, M = 0.5;
+      // Header band, matching the Report Generator's look
+      try { doc.addImage(KRAEMER_LOGO_BASE64, "PNG", M, M - 0.05, 1.55, 0.5); } catch(_){}
+      doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(28,31,33);
+      doc.text("Gradation Time Series", pageW/2, M + 0.22, {align:"center"});
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(69,75,78);
+      const vr = tsViewRange();
+      doc.text(tsState.quarry + "   \u00b7   " + tsFmtShort(vr[0]) + " to " + tsFmtShort(vr[1]) +
+        "   \u00b7   " + (tsState.agg === "day" ? "day averages" : "each test"), pageW/2, M + 0.42, {align:"center"});
+      doc.setDrawColor(192,0,0); doc.setLineWidth(0.02);
+      doc.line(M, M + 0.56, pageW - M, M + 0.56);
+
+      const availW = pageW - 2*M;
+      const chartH = availW * (img.height / img.width);
+      const chartTop = M + 0.72;
+      doc.addImage(img.dataUrl, "PNG", M, chartTop, availW, chartH);
+
+      let y = chartTop + chartH + 0.28;
+      doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(28,31,33);
+      doc.text("Series statistics — visible window", M, y);
+      y += 0.16;
+      const cols = [
+        {t:"Series",   w:3.1, a:"left"},  {t:"n",       w:0.4},  {t:"Mean", w:0.7},
+        {t:"Std dev",  w:0.7},            {t:"Min",     w:0.7},  {t:"Max",  w:0.7},
+        {t:"Spec",     w:0.9},            {t:"% in spec", w:0.8}, {t:"Cpk", w:0.6},
+        {t:"Trend/30d", w:0.9}
+      ];
+      doc.setFontSize(7.5);
+      let x = M;
+      doc.setFont("helvetica","bold");
+      cols.forEach(c => { doc.text(c.t, c.a === "left" ? x : x + c.w, y, c.a === "left" ? undefined : {align:"right"}); x += c.w; });
+      y += 0.05;
+      doc.setDrawColor(120,120,120); doc.setLineWidth(0.006);
+      doc.line(M, y, M + cols.reduce((a,c)=>a+c.w,0), y);
+      y += 0.13;
+      doc.setFont("helvetica","normal");
+      tsLastStats.forEach(st => {
+        if (y > pageH - M - 0.2) return;
+        const vals = [st.label, String(st.n), st.mean.toFixed(st.dec), st.sd.toFixed(st.dec+1),
+          st.min.toFixed(st.dec), st.max.toFixed(st.dec), st.specTxt, st.inSpec, st.cpk, st.trend];
+        x = M;
+        vals.forEach((v, i) => {
+          const c = cols[i];
+          const txt = i === 0 ? doc.splitTextToSize(String(v), c.w - 0.06)[0] : String(v);
+          doc.text(txt, c.a === "left" ? x : x + c.w, y, c.a === "left" ? undefined : {align:"right"});
+          x += c.w;
+        });
+        y += 0.15;
+      });
+
+      const who = (activeAccount && (activeAccount.name || activeAccount.username)) || "";
+      doc.setFontSize(7); doc.setTextColor(107,113,117);
+      doc.text("Generated by " + who + " on " + fmtDate(new Date()), M, pageH - 0.28);
+      downloadBlob(doc.output("blob"), tsExportBaseName() + ".pdf");
+    }
+  }
+
+  /* ---------------- scope controls + init ---------------- */
+  function tsApplyPreset(p){
+    const end = new Date();
+    const back = m => { const d = new Date(end); d.setMonth(d.getMonth() - m); return d; };
+    let s;
+    if (p === "1m") s = back(1);
+    else if (p === "3m") s = back(3);
+    else if (p === "6m") s = back(6);
+    else if (p === "12m") s = back(12);
+    else if (p === "ytd") s = new Date(end.getFullYear(), 0, 1);
+    else return;
+    tsState.start = dayNum(s) * TS_DAY;
+    tsState.end = dayNum(end) * TS_DAY;
+    $("tsStartDate").value = tsIso(tsState.start);
+    $("tsEndDate").value = tsIso(tsState.end);
+  }
+  async function tsEnsureRange(){
+    await ensureDataLoaded(fromDayNum(tsState.start/TS_DAY), fromDayNum(tsState.end/TS_DAY));
+    tsProdCache = {};
+  }
+  function tsDefaultSeries(){
+    const keys = tsGradKeys(tsState.quarry);
+    if (!keys.length) return [];
+    const out = [];
+    const first = tsProductInfo(keys[0]);
+    if (first && first.keys.length){
+      out.push({id: tsNextSeriesId++, on:true, color:TS_PALETTE[0], sourceKey:keys[0], metric:"pass",
+        sieve: first.keys[first.keys.length-1], sieve2: first.keys[Math.max(0, first.keys.length-2)],
+        pct:10, typeOverride:"", sgSamples:[], ctrlSieves:[], zWin:20, axis:"L", ma:5, spec:true, sigma:false});
+      out.push({id: tsNextSeriesId++, on:true, color:TS_PALETTE[1], sourceKey:keys[0], metric: first.hasSpec ? "speccen" : "zscore",
+        sieve: first.keys[first.keys.length-1], sieve2: first.keys[Math.max(0, first.keys.length-2)],
+        pct:10, typeOverride:"", sgSamples:[], ctrlSieves:[], zWin:20, axis:"R", ma:5, spec:true, sigma:false});
+    }
+    return out;
+  }
+  function tsWireScope(){
+    const qs = $("tsQuarrySelect");
+    populateSelect(qs, quarries);
+    qs.value = tsState.quarry;
+    qs.addEventListener("change", () => {
+      tsState.quarry = qs.value;
+      const keys = tsAllKeys(tsState.quarry);
+      tsState.series.forEach(s => {
+        if (keys.indexOf(s.sourceKey) === -1) s.sourceKey = keys[0];
+        tsFixSeries(s);
+      });
+      const ok = k => tsGradKeys(tsState.quarry).indexOf(k) !== -1;
+      tsState.highlights.forEach(h => { if (h.keys) h.keys = h.keys.filter(ok); });
+      tsState.filters.forEach(f => { if (f.keys) f.keys = f.keys.filter(ok); });
+      tsRenderSeries(); tsRenderHighlights(); tsRenderFilters(); tsRedraw();
+    });
+
+    const tc = $("tsTypeChecks");
+    tc.innerHTML = TS_TYPES.map(t =>
+      '<label><input type="checkbox" data-type="'+t+'"'+(tsState.types[t]?" checked":"")+'> '+t+'</label>').join("");
+    Array.from(tc.querySelectorAll("input")).forEach(cb =>
+      cb.addEventListener("change", () => { tsState.types[cb.dataset.type] = cb.checked; tsRedraw(); }));
+
+    $("tsStartDate").addEventListener("change", async e => {
+      tsState.start = tsParseISO(e.target.value);
+      $("tsPreset").value = ""; tsState.view = null;
+      await tsEnsureRange(); tsRedraw();
+    });
+    $("tsEndDate").addEventListener("change", async e => {
+      tsState.end = tsParseISO(e.target.value);
+      $("tsPreset").value = ""; tsState.view = null;
+      await tsEnsureRange(); tsRedraw();
+    });
+    $("tsPreset").addEventListener("change", async e => {
+      tsApplyPreset(e.target.value); tsState.view = null;
+      await tsEnsureRange(); tsRedraw();
+    });
+    $("tsAgg").addEventListener("change", e => { tsState.agg = e.target.value; tsRedraw(); });
+    $("tsGapDays").addEventListener("change", e => { tsState.gapDays = Math.max(0, +e.target.value || 0); tsRedraw(); });
+    $("tsTgPoints").addEventListener("change", e => { tsState.toggles.points = e.target.checked; tsRedraw(); });
+    $("tsTgGapBands").addEventListener("change", e => { tsState.toggles.gapBands = e.target.checked; tsRedraw(); });
+    Array.from($("tsDragMode").querySelectorAll("button")).forEach(b => b.addEventListener("click", () => {
+      tsState.dragMode = b.dataset.m;
+      Array.from($("tsDragMode").querySelectorAll("button")).forEach(x => x.classList.toggle("on", x === b));
+      const ha = document.querySelector("#tsHitArea");
+      if (ha) ha.style.cursor = tsState.dragMode === "pan" ? "grab" : "crosshair";
+    }));
+    $("tsResetZoomBtn").addEventListener("click", () => { tsState.view = null; tsRedraw(); });
+    $("tsFilterBase").addEventListener("change", e => { tsState.filterBase = e.target.value; tsRenderFilters(); tsRedraw(); });
+    $("tsAddSeriesBtn").addEventListener("click", tsAddSeries);
+    $("tsClearSeriesBtn").addEventListener("click", () => { tsState.series = []; tsRenderSeries(); tsRedraw(); });
+    $("tsAddHlBtn").addEventListener("click", () => tsAddHighlight($("tsHlKind").value));
+    $("tsAddFilterBtn").addEventListener("click", () => tsAddFilter($("tsFilterKind").value));
+    $("tsExportPng").addEventListener("click", tsExportPng);
+    $("tsExportSvg").addEventListener("click", tsExportSvg);
+    $("tsExportCsv").addEventListener("click", tsExportCsv);
+    $("tsExportPdf").addEventListener("click", tsExportPdf);
+  }
+
+  // Called the first time the Time Series tab is opened — keeps sign-in fast.
+  let tsInitPromise = null;
+  function tsInit(){
+    if (tsInitPromise) return tsInitPromise;
+    tsInitPromise = (async () => {
+      tsState.quarry = selectedQuarry || quarries[0] || null;
+      if (!tsState.quarry){ $("tsChartHost").innerHTML = '<div class="ts-chart-empty">No quarries loaded yet.</div>'; return; }
+      const today = new Date();
+      tsState.end = dayNum(today) * TS_DAY;
+      tsState.start = dayNum(addMonths(today, -12)) * TS_DAY;
+      $("tsStartDate").value = tsIso(tsState.start);
+      $("tsEndDate").value = tsIso(tsState.end);
+      $("tsPreset").value = "12m";
+      tsWireScope();
+      await tsLoadSG();
+      await tsEnsureRange();
+      tsState.booted = true;
+      if (!tsState.series.length) tsState.series = tsDefaultSeries();
+      tsState.series.forEach(tsFixSeries);
+      tsRenderSeries(); tsRenderHighlights(); tsRenderFilters(); tsRedraw();
+    })();
+    return tsInitPromise;
+  }
 
 })();
 </script>
