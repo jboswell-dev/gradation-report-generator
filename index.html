@@ -440,6 +440,15 @@
   .report-checkbox input{accent-color:var(--rust);}
   #generateBtn{font-size:13px;padding:8px 22px;align-self:center;}
 
+  /* ---------- cached-data row + refresh ---------- */
+  .cached-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  button.refresh-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.03em;
+    padding:2px 8px;line-height:1.5;
+  }
+  button.refresh-btn:disabled{opacity:0.5;}
+  .stale-note{color:var(--amber);font-weight:600;}
+
   /* ---------- Time Series tab ---------- */
   #paneTimeSeries input[type="text"]{
     font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink);
@@ -591,7 +600,11 @@
         </div>
       </div>
       <div class="status-line">
-        <span id="statusText">—</span>
+        <span class="cached-row">
+          <button type="button" class="mini ghost refresh-btn" id="refreshDataBtn"
+                  title="Discard cached tests and re-read everything from SharePoint. Resets the date range to today.">&#x21bb; Refresh</button>
+          <span id="statusText">—</span>
+        </span>
         <span id="loadingText" class="loading" style="display:none;">Loading data from SharePoint…</span>
       </div>
     </div>
@@ -698,7 +711,11 @@
           </div>
         </div>
         <div class="status-line">
-          <span id="tsScopeStatus">&mdash;</span>
+          <span class="cached-row">
+            <button type="button" class="mini ghost refresh-btn" id="tsRefreshDataBtn"
+                    title="Discard cached tests and re-read everything from SharePoint. Resets the date range to today.">&#x21bb; Refresh</button>
+            <span id="tsScopeStatus">&mdash;</span>
+          </span>
           <span id="tsModeHint"></span>
         </div>
       </div>
@@ -863,7 +880,10 @@
       redirectUri: window.location.origin + window.location.pathname
     },
     cache: {
-      cacheLocation: "sessionStorage",
+      // localStorage, not sessionStorage: sessionStorage is wiped the moment the
+      // tab (or an installed home-screen copy) closes, which made users tap
+      // Sign in again on every launch even though Microsoft still knew them.
+      cacheLocation: "localStorage",
       storeAuthStateInCookie: false
     }
   };
@@ -1435,12 +1455,88 @@
     }
   }
 
+  // When the currently-held data was read from SharePoint. Shown in the status
+  // line so a page left open all day can't quietly look current — the range
+  // cache means today is already "loaded", so tests submitted after this moment
+  // are NOT picked up until a refresh.
+  let dataLoadedAt = null;
+
+  function fmtClock(d){
+    let h = d.getHours(); const m = pad2(d.getMinutes());
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; if (h === 0) h = 12;
+    return h + ":" + m + " " + ampm;
+  }
   function updateStatusLine(){
     if (!loadedRanges.length){ $("statusText").textContent = "No data cached yet."; return; }
     const first = loadedRanges[0].start, last = loadedRanges[loadedRanges.length-1].end;
-    $("statusText").textContent =
-      "Cached: " + fmtDate(fromDayNum(first)) + " – " + fmtDate(fromDayNum(last)) +
+    let txt = "Cached: " + fmtDate(fromDayNum(first)) + " – " + fmtDate(fromDayNum(last)) +
       "  (" + allTests.length + " tests in memory)";
+    if (dataLoadedAt) txt += "  ·  loaded " + fmtClock(dataLoadedAt);
+    $("statusText").textContent = txt;
+    markStaleness();
+  }
+
+  // After a while the "loaded at" time deserves to be noticed, not just present.
+  const STALE_AFTER_MIN = 30;
+  function markStaleness(){
+    const el = $("statusText");
+    if (!el || !dataLoadedAt){ return; }
+    const mins = Math.floor((Date.now() - dataLoadedAt.getTime()) / 60000);
+    el.classList.toggle("stale-note", mins >= STALE_AFTER_MIN);
+    el.title = mins >= STALE_AFTER_MIN
+      ? "This data was read " + mins + " minutes ago. Tests submitted since then are not shown — click Refresh."
+      : "";
+    if (typeof tsMarkStaleness === "function") tsMarkStaleness(mins);
+  }
+  setInterval(markStaleness, 60000);
+
+  // Full re-read: drop every cached test and range, snap the displayed range
+  // back to the startup default (ending today), and reload — while keeping the
+  // user's quarry, product, sample types, and any Time Series setup intact.
+  let refreshInFlight = false;
+  async function refreshAllData(){
+    if (refreshInFlight) return;
+    refreshInFlight = true;
+    const btns = [$("refreshDataBtn"), $("tsRefreshDataBtn")].filter(Boolean);
+    btns.forEach(b => { b.disabled = true; });
+    clearError();
+    try {
+      allTests = [];
+      loadedRanges = [];
+      addlDriveId = null;
+
+      // Keep whatever span the user was looking at and slide it forward so it
+      // ends today — someone who widened out to three years shouldn't get
+      // snapped back to two months just for asking for fresh data.
+      const today = new Date();
+      const spanDays = Math.max(0, dayNum(displayEnd) - dayNum(displayStart));
+      displayEnd = today;
+      displayStart = fromDayNum(dayNum(today) - spanDays);
+      $("startDate").value = toInputDate(displayStart);
+      $("endDate").value = toInputDate(displayEnd);
+
+      // Preload the usual 12 months, or the user's span if it reaches further back.
+      const preloadStart = addMonths(today, -LOAD_WINDOW_MONTHS);
+      await ensureDataLoaded(displayStart < preloadStart ? displayStart : preloadStart, today);
+      dataLoadedAt = new Date();
+      updateStatusLine();
+
+      resetIncludedToLastN();
+      render();
+
+      await loadAdditionalTests();
+      renderAdditionalTests();
+
+      // Time Series shares the same arrays, so it needs its own range snapped
+      // forward and a redraw. Only if it has been opened at least once.
+      if (typeof tsAfterGlobalRefresh === "function") await tsAfterGlobalRefresh();
+    } catch(e){
+      showError("Could not refresh data from SharePoint: " + e.message);
+    } finally {
+      btns.forEach(b => { b.disabled = false; });
+      refreshInFlight = false;
+    }
   }
 
   /* ================================================================
@@ -1482,6 +1578,8 @@
     wireControls();
 
     await ensureDataLoaded(loadStart, today);
+    dataLoadedAt = new Date();
+    updateStatusLine();
     resetIncludedToLastN();
     render();
 
@@ -1637,6 +1735,8 @@
       renderAdditionalTests();
       btn.disabled = false;
     });
+
+    $("refreshDataBtn").addEventListener("click", refreshAllData);
 
     wireTabs();
   }
@@ -3921,6 +4021,41 @@
     }).join("");
   }
 
+  // Mirrors the Report Generator's staleness cue on this tab's status line.
+  function tsMarkStaleness(mins){
+    const el = $("tsScopeStatus");
+    if (!el) return;
+    el.classList.toggle("stale-note", mins >= 30);
+    el.title = mins >= 30
+      ? "This data was read " + mins + " minutes ago. Tests submitted since then are not shown \u2014 click Refresh."
+      : "";
+  }
+
+  // Called by the shared refresh: the log arrays have already been re-read, so
+  // snap this tab's own date range forward to today and redraw. Series,
+  // highlights, and filter rules are all preserved.
+  async function tsAfterGlobalRefresh(){
+    if (!tsState.booted) return;
+    // Same rule as the other tab: keep the span the user had, move its end to
+    // today. Only the zoom is discarded — a window pinned to old dates after
+    // the data underneath changed would be misleading.
+    const today = new Date();
+    const spanMs = Math.max(TS_DAY, tsState.end - tsState.start);
+    tsState.end = dayNum(today) * TS_DAY;
+    tsState.start = tsState.end - spanMs;
+    $("tsStartDate").value = tsIso(tsState.start);
+    $("tsEndDate").value = tsIso(tsState.end);
+    $("tsPreset").value = "";     // the span is the user's now, not a preset
+    tsState.view = null;
+    tsProdCache = {};             // specs may have changed too
+    tsNormCache.clear();          // rows were replaced; their ids are gone
+    tsSgStatus = "idle"; tsSgRows = null;
+    await tsLoadSG();
+    await tsEnsureRange();
+    tsState.series.forEach(tsFixSeries);
+    tsRenderSeries(); tsRenderHighlights(); tsRenderFilters(); tsRedraw();
+  }
+
   function tsUpdateStatus(nPoints, dropped){
     const days = Math.round((tsState.end - tsState.start)/TS_DAY) + 1;
     const vis = TS_VISIBLE ? TS_VISIBLE.size : days;
@@ -3928,7 +4063,11 @@
     const sgN = (tsSgRows || []).filter(r => r.quarry === tsState.quarry).length;
     $("tsScopeStatus").textContent =
       gradN.toLocaleString() + " gradations cached" + (tsSgStatus === "loaded" ? " + " + sgN.toLocaleString() + " SG tests" : "") +
-      " \u00b7 " + vis + " of " + days + " days shown \u00b7 " + nPoints.toLocaleString() + " points in view";
+      " \u00b7 " + vis + " of " + days + " days shown \u00b7 " + nPoints.toLocaleString() + " points in view" +
+      (typeof dataLoadedAt !== "undefined" && dataLoadedAt ? "  \u00b7  loaded " + fmtClock(dataLoadedAt) : "");
+    if (typeof dataLoadedAt !== "undefined" && dataLoadedAt){
+      tsMarkStaleness(Math.floor((Date.now() - dataLoadedAt.getTime()) / 60000));
+    }
     const hints = [];
     const nf = tsState.filters.filter(f => f.on).length;
     if (nf) hints.push(nf + " filter" + (nf>1?"s":"") + " active \u00b7 " + (days - vis) + " days removed");
@@ -4216,6 +4355,7 @@
     $("tsClearSeriesBtn").addEventListener("click", () => { tsState.series = []; tsRenderSeries(); tsRedraw(); });
     $("tsAddHlBtn").addEventListener("click", () => tsAddHighlight($("tsHlKind").value));
     $("tsAddFilterBtn").addEventListener("click", () => tsAddFilter($("tsFilterKind").value));
+    $("tsRefreshDataBtn").addEventListener("click", refreshAllData);
     $("tsExportPng").addEventListener("click", tsExportPng);
     $("tsExportSvg").addEventListener("click", tsExportSvg);
     $("tsExportCsv").addEventListener("click", tsExportCsv);
