@@ -190,7 +190,9 @@
   .controls-row{
     display:flex;
     flex-wrap:wrap;
-    align-items:flex-end;
+    /* stretch, not flex-end: bottom-aligning made the short Sample type field
+       hang below the others and dragged its label down with it */
+    align-items:stretch;
     gap:0;
   }
   .field{
@@ -200,6 +202,12 @@
     padding:0 16px 8px 0;
     position:relative;
   }
+  /* Labels all sit on the top line; whatever control follows floats to the
+     middle of the leftover height, so a short checkbox row lines up with the
+     taller dropdowns beside it. */
+  .controls-row.not-ready{opacity:0.55;pointer-events:none;}
+  .field > label{flex:0 0 auto;}
+  .field > *:not(label){margin-top:auto;margin-bottom:auto;}
   .field + .field{
     border-left:1px dotted var(--line-strong);
     padding-left:16px;
@@ -217,7 +225,7 @@
     letter-spacing:0.07em;
     color:var(--ink-faint);
   }
-  select, input[type="date"], input[type="number"], textarea{
+  select, input[type="date"], input[type="number"], input[type="text"], textarea{
     font-family:'IBM Plex Mono',monospace;
     font-size:12.5px;
     color:var(--ink);
@@ -225,6 +233,16 @@
     border-radius:var(--radius);
     background:#fff;
     padding:6px 8px;
+  }
+  /* A text input's intrinsic height is a shade shorter than a select's or a
+     date picker's, which read as "flatter" sitting next to them. Pin them all
+     to the same box. */
+  .controls-row select,
+  .controls-row input[type="date"],
+  .controls-row input[type="number"],
+  .controls-row input[type="text"]{
+    height:31px;
+    line-height:1.25;
   }
   select{min-width:150px;}
   input[type="date"]{min-width:130px;}
@@ -452,14 +470,7 @@
   /* ---------- product report name: matches the dropdowns beside it ---------- */
   .name-row{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;}
   #reportNameInput{
-    /* same box as the Quarry / Product selects */
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12.5px;
-    color:var(--ink);
-    background:#fff;
-    border:1px solid var(--line-strong);
-    border-radius:var(--radius);
-    padding:6px 8px;
+    /* box comes from the shared select/input rule above */
     min-width:190px;
     flex:1 1 auto;
   }
@@ -469,7 +480,7 @@
      and never wraps away from the field it belongs to. */
   .icon-btn{
     flex:0 0 auto;
-    width:29px;height:29px;
+    width:31px;height:31px;
     padding:0;
     line-height:1;
     font-size:14px;
@@ -665,11 +676,11 @@
         </span>
         <span class="status-opts">
           <span class="opt-group">
-            <span class="opt-label">Data</span>
+            <span class="opt-label">Data:</span>
             <label class="opt"><input type="checkbox" id="toggleSelectedDaysOnly"> <span>Use selected days only</span></label>
           </span>
           <span class="opt-group">
-            <span class="opt-label">Chart overlays</span>
+            <span class="opt-label">Chart overlays:</span>
             <label class="opt"><input type="checkbox" id="toggleSpec"> <span>Spec range</span> <span class="swatch sw-spec"></span></label>
             <label class="opt"><input type="checkbox" id="toggleMinMax"> <span>Min / Max</span> <span class="swatch sw-minmax"></span></label>
           </span>
@@ -1185,6 +1196,19 @@
   function clearError(){ $("errorBanner").style.display = "none"; }
   function setLoading(on){ $("loadingText").style.display = on ? "inline" : "none"; $("chartLoadingOverlay").style.display = on ? "flex" : "none"; }
 
+  // While the app is still assembling, dim and disable the controls rather than
+  // presenting empty dropdowns that look like a broken app.
+  function setControlsReady(ready){
+    const panel = document.querySelector(".controls-row");
+    if (panel) panel.classList.toggle("not-ready", !ready);
+    ["quarrySelect","productSelect","startDate","endDate","reportNameInput",
+     "refreshDataBtn","toggleSpec","toggleMinMax","toggleSelectedDaysOnly"].forEach(id => {
+      const el = $(id);
+      if (el) el.disabled = !ready;
+    });
+    if (!ready) $("statusText").textContent = "Loading from SharePoint\u2026";
+  }
+
   /* ================================================================
      DATE HELPERS (day-number space to avoid TZ/interval bugs)
      ================================================================ */
@@ -1514,6 +1538,14 @@
     return gaps.filter(g => g.start <= g.end);
   }
 
+  // True while bootstrap() is still assembling the app. The parallel fetches
+  // finish in whatever order they finish, and the tests often land before the
+  // product list does — without this the status line would fill in with a real
+  // test count while the dropdowns were still empty and the chart still said
+  // "no data", which looks broken. Bootstrap clears the loading state itself,
+  // once everything is actually ready.
+  let bootstrapping = false;
+
   async function ensureDataLoaded(startDate, endDate){
     const gaps = getGaps(dayNum(startDate), dayNum(endDate));
     if (!gaps.length) return;
@@ -1529,8 +1561,10 @@
     } catch(e){
       showError("Could not load data from SharePoint: " + e.message);
     } finally {
-      setLoading(false);
-      updateStatusLine();
+      if (!bootstrapping){
+        setLoading(false);
+        updateStatusLine();
+      }
     }
   }
 
@@ -1579,6 +1613,7 @@
     refreshInFlight = true;
     const btns = [$("refreshDataBtn"), $("tsRefreshDataBtn")].filter(Boolean);
     btns.forEach(b => { b.disabled = true; });
+    setLoading(true);
     clearError();
     try {
       addlDriveId = null;
@@ -1634,6 +1669,7 @@
     } catch(e){
       showError("Could not refresh data from SharePoint: " + e.message);
     } finally {
+      setLoading(false);
       btns.forEach(b => { b.disabled = false; });
       refreshInFlight = false;
     }
@@ -1643,7 +1679,9 @@
      BOOTSTRAP
      ================================================================ */
   async function bootstrap(){
+    bootstrapping = true;
     setLoading(true);
+    setControlsReady(false);
     clearError();
 
     const today = new Date();
@@ -1668,7 +1706,9 @@
       products.forEach(p => { if (p._itemId) productById[p._itemId] = p; });
     } catch(e){
       showError("Could not load Gradation_Products: " + e.message);
+      bootstrapping = false;
       setLoading(false);
+      setControlsReady(true);
       return;
     }
     customProductIndex = await pCustom;
@@ -1688,7 +1728,10 @@
     wireControls();
 
     await pTests;
+    bootstrapping = false;
     dataLoadedAt = new Date();
+    setLoading(false);
+    setControlsReady(true);
     updateStatusLine();
     resetIncludedToLastN();
     render();
