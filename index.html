@@ -259,6 +259,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap:16px;
+    flex-wrap:wrap;   /* on a narrow window the options drop below rather than squashing */
   }
   .status-line .loading{color:var(--slate);}
 
@@ -365,18 +367,26 @@
     overflow-x:auto;
     overflow-y:auto;
   }
-  #testPickerPanel{
-    max-height:560px;
+  /* The panel itself must NOT scroll: its padding used to sit inside the
+     scroll box, so rows slid up into the strip above the sticky header and
+     stayed visible. The inner .table-scroll has no padding, so the header
+     now sits flush against the top of the scrolling area. */
+  .table-panel{overflow:visible;}
+  .table-scroll{
+    overflow:auto;
+    /* a hair of right padding so the last column clears the scrollbar */
+    padding-right:2px;
   }
-  #addlTestsPanel{
-    max-height:340px;
-  }
-  #summaryPanel{
-    max-height:320px;
-  }
+  #testPickerPanel .table-scroll{max-height:520px;}
+  #addlTestsPanel .table-scroll{max-height:300px;}
+  #summaryPanel .table-scroll{max-height:280px;}
   table{border-collapse:collapse;width:auto;font-size:10.5px;}
   thead th{
-    position:sticky;top:0;background:var(--panel-2);
+    position:sticky;top:0;z-index:3;
+    background:var(--panel-2);
+    /* a sticky cell's own border doesn't always paint, and a transparent gap
+       would let rows show through — draw the rule as a shadow instead */
+    box-shadow:0 1px 0 0 var(--line-strong);
     font-family:'IBM Plex Mono',monospace;
     font-size:9.5px;text-transform:uppercase;letter-spacing:0.03em;
     color:var(--ink-soft);
@@ -439,8 +449,54 @@
   }
   .report-checkbox input{accent-color:var(--rust);}
   #generateBtn{font-size:13px;padding:8px 22px;align-self:center;}
-  #reportNameInput{min-width:230px;}
+  /* ---------- product report name: matches the dropdowns beside it ---------- */
+  .name-row{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;}
+  #reportNameInput{
+    /* same box as the Quarry / Product selects */
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    padding:6px 8px;
+    min-width:190px;
+    flex:1 1 auto;
+  }
+  #reportNameInput:focus{outline:2px solid var(--slate);outline-offset:1px;}
   #reportNameInput.custom-name{border-color:var(--slate);}
+  /* Icon-only reset, sized to the input so it never changes the row height
+     and never wraps away from the field it belongs to. */
+  .icon-btn{
+    flex:0 0 auto;
+    width:29px;height:29px;
+    padding:0;
+    line-height:1;
+    font-size:14px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .icon-btn:hover{background:#fff;border-color:var(--ink-soft);color:var(--ink);}
+  .icon-btn[hidden]{display:none;}
+
+  /* ---------- status line: cache info left, options right ---------- */
+  .status-opts{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .opt-group{display:flex;align-items:center;gap:9px;}
+  .opt-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.07em;
+    color:var(--ink-faint);
+  }
+  label.opt{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:11.5px;color:var(--ink);
+    cursor:pointer;white-space:nowrap;
+  }
+  label.opt input{accent-color:var(--rust);margin:0;}
 
   /* ---------- cached-data row + refresh ---------- */
   .cached-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -589,32 +645,35 @@
           </div>
         </div>
         <div class="field">
-          <label>Show last N tests <span style="text-transform:none;">(0 = all)</span></label>
-          <input type="number" id="lastNInput" min="0" step="1" value="20">
-        </div>
-        <div class="field">
           <label>Product report name</label>
-          <input type="text" id="reportNameInput" placeholder="(product name)"
-                 title="The name printed in the Product Details section of the gradation report. Follows the product unless you type your own; the reset arrow puts it back.">
-          <button type="button" class="mini ghost" id="reportNameReset" style="display:none;align-self:flex-start;margin-top:3px;"
-                  title="Go back to following the selected product">&#x21bb; Use product name</button>
-        </div>
-        <div class="field">
-          <label>Chart overlays</label>
-          <div class="toggles">
-            <label><span class="swatch sw-spec"></span> Spec range <input type="checkbox" id="toggleSpec"></label>
-            <label><span class="swatch sw-minmax"></span> Min / Max <input type="checkbox" id="toggleMinMax"></label>
-            <label>Selected days only <input type="checkbox" id="toggleSelectedDaysOnly"></label>
+          <div class="name-row">
+            <input type="text" id="reportNameInput" placeholder="(product name)"
+                   title="The name printed in the Product Details section of the gradation report, and used for both file names. Follows the product unless you type your own.">
+            <button type="button" class="icon-btn" id="reportNameReset" hidden
+                    aria-label="Use product name"
+                    title="Go back to following the selected product">&#x21bb;</button>
           </div>
         </div>
       </div>
+
       <div class="status-line">
         <span class="cached-row">
           <button type="button" class="mini ghost refresh-btn" id="refreshDataBtn"
-                  title="Discard cached tests and re-read everything from SharePoint. Resets the date range to today.">&#x21bb; Refresh</button>
-          <span id="statusText">—</span>
+                  title="Re-read the visible window from SharePoint. Older data already downloaded is kept.">&#x21bb; Refresh</button>
+          <span id="statusText">&mdash;</span>
+          <span id="loadingText" class="loading" style="display:none;">Loading data from SharePoint&hellip;</span>
         </span>
-        <span id="loadingText" class="loading" style="display:none;">Loading data from SharePoint…</span>
+        <span class="status-opts">
+          <span class="opt-group">
+            <span class="opt-label">Data</span>
+            <label class="opt"><input type="checkbox" id="toggleSelectedDaysOnly"> <span>Use selected days only</span></label>
+          </span>
+          <span class="opt-group">
+            <span class="opt-label">Chart overlays</span>
+            <label class="opt"><input type="checkbox" id="toggleSpec"> <span>Spec range</span> <span class="swatch sw-spec"></span></label>
+            <label class="opt"><input type="checkbox" id="toggleMinMax"> <span>Min / Max</span> <span class="swatch sw-minmax"></span></label>
+          </span>
+        </span>
       </div>
     </div>
 
@@ -623,21 +682,22 @@
       <div class="left-col">
         <div class="table-panel" id="testPickerPanel">
           <h2 class="panel-title">Test History</h2>
-          <table id="testPickerTable">
-            <thead><tr></tr></thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-scroll">
+            <table id="testPickerTable">
+              <thead><tr></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="table-panel" id="addlTestsPanel">
-          <div class="panel-head">
-            <h2 class="panel-title">Additional Tests</h2>
-            <button type="button" class="mini" id="addlTestsRefreshBtn">Refresh</button>
+          <h2 class="panel-title">Additional Tests</h2>
+          <div class="table-scroll">
+            <table id="addlTestsTable">
+              <thead><tr></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <table id="addlTestsTable">
-            <thead><tr></tr></thead>
-            <tbody></tbody>
-          </table>
         </div>
       </div>
 
@@ -652,10 +712,12 @@
 
         <div class="table-panel" id="summaryPanel">
           <h2 class="panel-title">Report Summary</h2>
-          <table id="summaryTable">
-            <thead><tr></tr></thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-scroll">
+            <table id="summaryTable">
+              <thead><tr></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -920,7 +982,6 @@
 
   const LOAD_WINDOW_MONTHS = 12;   // how much history to preload silently on sign-in
   const DEFAULT_DISPLAY_MONTHS = 2; // default displayed range
-  const DEFAULT_LAST_N = 20;
   const AUTO_SELECT_LAST_N = 10;    // "Include" auto-checked on quarry/product/type change
 
   // Report generation config — EDIT THESE to match your SharePoint setup.
@@ -1101,7 +1162,6 @@
   let selectedSampleTypes = {Production:true, Loadout:false, Other:false};
   let displayStart = null;         // Date
   let displayEnd = null;           // Date
-  let lastN = DEFAULT_LAST_N;
   let showSpec = false;
   let showMinMax = false;
   let chartSelectedDaysOnly = false;
@@ -1249,9 +1309,14 @@
   // columns) so this stays cheap even as the log grows.
   async function loadCustomProductIndex(){
     const listId = await getListId(LOG_LIST_NAME);
+    // Filter server-side. Reading every row just to find the handful of custom
+    // products cost ~15 sequential pages and about 10 seconds of the cold start,
+    // and got worse every month. Requires IsCustomProduct to be an indexed
+    // column on the list, since the list is past the 5,000-item threshold.
+    const filter = encodeURIComponent("fields/IsCustomProduct eq true");
     const url = "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId +
-      "/items?expand=fields(select=Quarry,Product,IsCustomProduct)&$top=500";
-    const items = await graphGetAllPages(url);
+      "/items?expand=fields(select=Quarry,Product,IsCustomProduct)&$filter=" + filter + "&$top=500";
+    const items = await graphGetAllPages(url, {Prefer: "HonorNonIndexedQueriesWarningMayFailRandomly"});
     const seen = new Map();
     items.forEach(i => {
       const f = i.fields || {};
@@ -1270,7 +1335,7 @@
       "fields/SampleDate ge '" + isoStartOfDay(startDate) + "' and fields/SampleDate le '" + isoEndOfDay(endDate) + "'"
     );
     const url = "https://graph.microsoft.com/v1.0/sites/" + SITE_ID + "/lists/" + listId +
-      "/items?expand=fields&$filter=" + filter + "&$top=200";
+      "/items?expand=fields&$filter=" + filter + "&$top=2000";
     const items = await graphGetAllPages(url, {Prefer: "HonorNonIndexedQueriesWarningMayFailRandomly"});
     return items.map(i => Object.assign({_itemId: i.id}, i.fields));
   }
@@ -1516,8 +1581,6 @@
     btns.forEach(b => { b.disabled = true; });
     clearError();
     try {
-      allTests = [];
-      loadedRanges = [];
       addlDriveId = null;
 
       // Keep whatever span the user was looking at and slide it forward so it
@@ -1530,9 +1593,29 @@
       $("startDate").value = toInputDate(displayStart);
       $("endDate").value = toInputDate(displayEnd);
 
-      // Preload the usual 12 months, or the user's span if it reaches further back.
+      // Re-read the window the user can actually see (plus the usual 12-month
+      // preload), but KEEP everything else already downloaded. History that has
+      // been fetched once doesn't change, and re-fetching five years because
+      // someone wanted today's tests was pure waste.
       const preloadStart = addMonths(today, -LOAD_WINDOW_MONTHS);
-      await ensureDataLoaded(displayStart < preloadStart ? displayStart : preloadStart, today);
+      const refetchFrom = displayStart < preloadStart ? displayStart : preloadStart;
+      const fromDay = dayNum(refetchFrom), toDay = dayNum(today);
+
+      // Drop only the rows inside the window being re-read, so edits and
+      // deletions there are picked up rather than duplicated.
+      allTests = allTests.filter(t => {
+        const d = dayNumFromISODateUTC(t.SampleDate);
+        return !(d >= fromDay && d <= toDay);
+      });
+      // Punch that window out of the cache record; everything older stays loaded.
+      loadedRanges = loadedRanges.reduce((acc, r) => {
+        if (r.end < fromDay || r.start > toDay){ acc.push(r); return acc; }
+        if (r.start < fromDay) acc.push({start: r.start, end: fromDay - 1});
+        if (r.end > toDay) acc.push({start: toDay + 1, end: r.end});
+        return acc;
+      }, []);
+
+      await ensureDataLoaded(refetchFrom, today);
       dataLoadedAt = new Date();
       updateStatusLine();
 
@@ -1540,6 +1623,8 @@
       syncReportName();
       render();
 
+      addlTestsStatus = "loading";
+      renderAdditionalTests();     // show "Loading…" in that panel immediately
       await loadAdditionalTests();
       renderAdditionalTests();
 
@@ -1560,8 +1645,25 @@
   async function bootstrap(){
     setLoading(true);
     clearError();
+
+    const today = new Date();
+    const loadStart = addMonths(today, -LOAD_WINDOW_MONTHS);
+
+    // Warm the list-id cache first, so the parallel fetches below don't each
+    // make their own identical lookup.
+    try { await getListId(LOG_LIST_NAME); } catch(_){}
+
+    // None of these three depend on each other, so run them together rather
+    // than in a chain — the cold start used to pay for all of them end to end.
+    const pProducts = loadProducts();
+    const pCustom   = loadCustomProductIndex().catch(e => {
+      console.error("Could not load custom product index: " + e.message);
+      return []; // non-fatal — the Custom option just shows none available
+    });
+    const pTests    = ensureDataLoaded(loadStart, today);
+
     try {
-      products = await loadProducts();
+      products = await pProducts;
       productById = {};
       products.forEach(p => { if (p._itemId) productById[p._itemId] = p; });
     } catch(e){
@@ -1569,13 +1671,7 @@
       setLoading(false);
       return;
     }
-
-    try {
-      customProductIndex = await loadCustomProductIndex();
-    } catch(e){
-      console.error("Could not load custom product index: " + e.message);
-      customProductIndex = []; // non-fatal — Custom option just shows none available
-    }
+    customProductIndex = await pCustom;
 
     quarries = Array.from(new Set(products.map(p => p.Quarry).filter(Boolean))).sort();
     populateSelect($("quarrySelect"), quarries);
@@ -1583,8 +1679,6 @@
     refreshProductOptions();
     syncReportName();
 
-    const today = new Date();
-    const loadStart = addMonths(today, -LOAD_WINDOW_MONTHS);
     displayEnd = today;
     displayStart = addMonths(today, -DEFAULT_DISPLAY_MONTHS);
     $("startDate").value = toInputDate(displayStart);
@@ -1593,7 +1687,7 @@
     renderSampleTypeGroup();
     wireControls();
 
-    await ensureDataLoaded(loadStart, today);
+    await pTests;
     dataLoadedAt = new Date();
     updateStatusLine();
     resetIncludedToLastN();
@@ -1690,7 +1784,7 @@
     el.placeholder = auto || "(product name)";
     if (reportNameOverride === null) el.value = auto;
     el.classList.toggle("custom-name", reportNameOverride !== null);
-    $("reportNameReset").style.display = (reportNameOverride === null) ? "none" : "";
+    $("reportNameReset").hidden = (reportNameOverride === null);
   }
 
   function getProductDisplayName(){
@@ -1747,7 +1841,7 @@
     $("reportNameInput").addEventListener("input", e => {
       reportNameOverride = e.target.value;
       e.target.classList.add("custom-name");
-      $("reportNameReset").style.display = "";
+      $("reportNameReset").hidden = false;
     });
     $("reportNameReset").addEventListener("click", () => {
       reportNameOverride = null;
@@ -1763,24 +1857,9 @@
       await ensureDataLoaded(displayStart, displayEnd);
       render();
     });
-    $("lastNInput").addEventListener("input", e => {
-      lastN = Math.max(0, parseInt(e.target.value || "0", 10));
-      render();
-    });
     $("toggleSpec").addEventListener("change", e => { showSpec = e.target.checked; render(); });
     $("toggleMinMax").addEventListener("change", e => { showMinMax = e.target.checked; render(); });
     $("toggleSelectedDaysOnly").addEventListener("change", e => { chartSelectedDaysOnly = e.target.checked; render(); });
-
-    $("addlTestsRefreshBtn").addEventListener("click", async () => {
-      const btn = $("addlTestsRefreshBtn");
-      btn.disabled = true;
-      addlDriveId = null;          // re-resolve in case the library was just created
-      addlTestsStatus = "loading";
-      renderAdditionalTests();     // show "Loading…" immediately
-      await loadAdditionalTests();
-      renderAdditionalTests();
-      btn.disabled = false;
-    });
 
     $("refreshDataBtn").addEventListener("click", refreshAllData);
 
@@ -1923,8 +2002,10 @@
     const rangeTestsRecentFirst = testsInDateRange(displayStart, displayEnd).sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
     const rangeTests = rangeTestsRecentFirst.slice().sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
     const sieves = productMode === "custom" ? getSievesFromTests(rangeTests) : getSievesForProduct(productFields);
-    const shownTests = (lastN > 0 ? rangeTestsRecentFirst.slice(0, lastN) : rangeTestsRecentFirst)
-      .slice().sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
+    // Test History shows every test in the date range. There used to be a
+    // "show last N" cap here, but a hidden test the user never scrolled to is
+    // worse than a long list.
+    const shownTests = rangeTests;
 
     const fullRangeDayAverages = computeDayAverages(rangeTests, sieves);
     const fullRangeStats = computeStats(fullRangeDayAverages, sieves);
