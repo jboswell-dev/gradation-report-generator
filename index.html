@@ -457,7 +457,7 @@
      a real out-of-spec value — now red means exactly one thing. */
   tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--ink);}
   /* ...and .spec-out has to out-rank the row rule to show through it. */
-  tbody tr.avg-row td.spec-out{color:var(--rust);}
+  tbody tr.avg-row td.spec-out{color:var(--rust);font-weight:600;}
   tbody tr.count-row td{
     border-bottom:none;padding-top:1px;padding-bottom:3px;
     font-size:9px;color:var(--ink-faint);
@@ -471,7 +471,10 @@
     white-space:nowrap;
     text-align:left;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-soft);
   }
-  td.spec-out{color:var(--rust);font-weight:600;}
+  /* Heavier than the surrounding 400 so an out-of-spec value reads at a
+     glance, not just on inspection. The Average row keeps its own 600 above —
+     it is already bold, so more weight there would say nothing. */
+  td.spec-out{color:var(--rust);font-weight:700;}
   .empty-row td{text-align:center;color:var(--ink-faint);font-style:normal;padding:16px;}
 
   /* ---------- comments / report ---------- */
@@ -1656,14 +1659,23 @@
   }
 
   // After a while the "loaded at" time deserves to be noticed, not just present.
-  const STALE_AFTER_MIN = 30;
+  // A day, not half an hour. The old 30 minutes meant the line sat orange for
+  // most of any normal working session, which trained people to ignore it.
+  const STALE_AFTER_MIN = 60 * 24;
+  function fmtAge(mins){
+    if (mins < 60) return mins + " minute" + (mins === 1 ? "" : "s");
+    const h = Math.floor(mins / 60);
+    if (h < 48) return h + " hour" + (h === 1 ? "" : "s");
+    const d = Math.floor(h / 24);
+    return d + " days";
+  }
   function markStaleness(){
     const el = $("statusText");
     if (!el || !dataLoadedAt){ return; }
     const mins = Math.floor((Date.now() - dataLoadedAt.getTime()) / 60000);
     el.classList.toggle("stale-note", mins >= STALE_AFTER_MIN);
     el.title = mins >= STALE_AFTER_MIN
-      ? "This data was read " + mins + " minutes ago. Tests submitted since then are not shown — click Refresh."
+      ? "This data was read " + fmtAge(mins) + " ago. Tests submitted since then are not shown — click Refresh."
       : "";
     if (typeof tsMarkStaleness === "function") tsMarkStaleness(mins);
   }
@@ -4395,9 +4407,9 @@
   function tsMarkStaleness(mins){
     const el = $("tsScopeStatus");
     if (!el) return;
-    el.classList.toggle("stale-note", mins >= 30);
-    el.title = mins >= 30
-      ? "This data was read " + mins + " minutes ago. Tests submitted since then are not shown \u2014 click Refresh."
+    el.classList.toggle("stale-note", mins >= STALE_AFTER_MIN);
+    el.title = mins >= STALE_AFTER_MIN
+      ? "This data was read " + fmtAge(mins) + " ago. Tests submitted since then are not shown \u2014 click Refresh."
       : "";
   }
 
