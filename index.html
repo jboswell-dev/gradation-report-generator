@@ -384,7 +384,13 @@
     padding:0 4px;vertical-align:1px;
   }
   #addlTestsTable td.tester-cell,
-  #addlTestsTable th.tester-cell{width:110px;}
+  #addlTestsTable th.tester-cell{width:165px;}
+  /* Capped so the width Tester gained comes out of Tests rather than being
+     split with Summary. */
+  #addlTestsTable td.tests-cell,
+  #addlTestsTable th.tests-cell{width:24%;}
+  #addlTestsTable td.product-cell,
+  #addlTestsTable th.product-cell{width:120px;}
   a.file-badge{
     display:inline-block;
     font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;
@@ -449,14 +455,23 @@
     white-space:nowrap;
   }
   tbody tr:hover{background:#fbfbfb;}
+  /* A row carrying any out-of-spec value is tinted, so a bad test is findable
+     by scanning the block rather than reading every cell. */
+  tbody tr.oos-row{background:#f2e7e5;}
+  tbody tr.oos-row:hover{background:#eeddda;}
+
+  /* The Average row is grey with a black rule when everything is inside spec —
+     it is a summary line, not a warning. It only turns red, rule included,
+     when one of its own averages is out. */
   tbody tr.avg-row{
-    background:#f2e7e5;
+    background:#e4e7e8;
     font-weight:600;
   }
-  /* Black, not rust. The whole row used to be red, which left no contrast for
-     a real out-of-spec value — now red means exactly one thing. */
-  tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--ink);}
-  /* ...and .spec-out has to out-rank the row rule to show through it. */
+  tbody tr.avg-row td{border-top:2px solid var(--ink);color:var(--ink);}
+  tbody tr.avg-row.oos-row{background:#f2e7e5;}
+  tbody tr.avg-row.oos-row:hover{background:#f2e7e5;}
+  tbody tr.avg-row.oos-row td{border-top:2px solid var(--rust);}
+  /* .spec-out has to out-rank the row rule to show through it. */
   tbody tr.avg-row td.spec-out{color:var(--rust);font-weight:600;}
   tbody tr.count-row td{
     border-bottom:none;padding-top:1px;padding-bottom:3px;
@@ -713,8 +728,7 @@
         <span class="status-opts">
           <span class="opt-group">
             <span class="opt-label">Sieves:</span>
-            <label class="opt"><input type="checkbox" id="toggleAllSieves"
-                   title="Standard shows only the sieves on this product's spec row. All tested shows every sieve that actually has data in the range — legacy products with no spec row, and one-off extra sieves or washes."> <span>Show all tested</span></label>
+            <label class="opt"><input type="checkbox" id="toggleAllSieves"> <span>Show all used</span></label>
             <span class="opt-label" id="sieveModeNote" style="text-transform:none;letter-spacing:0;"></span>
           </span>
           <span class="opt-group">
@@ -1536,6 +1550,11 @@
   }
 
   function addlRowMatchesProduct(r){
+    // Custom Product isn't one product, so there is nothing to narrow to —
+    // the panel becomes the place to see every additional test at this quarry,
+    // and gains a Product column to say what each one belongs to.
+    if (productMode === "custom") return true;
+
     const tagged = r.productIds.length || r.productNames.length;
     if (!tagged) return true;
 
@@ -2439,13 +2458,17 @@
       tdType.textContent = t.SampleType || "—";
       tr.appendChild(tdType);
 
+      let rowOut = false;
       sieves.forEach(s => {
         const td = document.createElement("td");
         const v = t[s.key + "_Pct"];
-        td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
+        const bad = outOfSpec(v, specs ? specs[s.key] : null);
+        if (bad) rowOut = true;
+        td.className = "center" + (bad ? " spec-out" : "");
         td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
         tr.appendChild(td);
       });
+      if (rowOut) tr.classList.add("oos-row");
 
       if (showNotes){
         const tdNotes = document.createElement("td");
@@ -2483,16 +2506,26 @@
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
 
+    const showProduct = (productMode === "custom");
     thead.innerHTML =
       '<th class="left date-cell">Date</th>' +
+      (showProduct ? '<th class="left product-cell">Product</th>' : "") +
       '<th class="left tester-cell">Tester</th>' +
-      '<th class="wrap-cell">Tests</th>' +
+      '<th class="wrap-cell tests-cell">Tests</th>' +
       '<th class="wrap-cell">Summary</th>' +
       '<th class="file-cell">File</th>';
     tbody.innerHTML = "";
 
+    const colCount = showProduct ? 6 : 5;
     function emptyRow(text){
-      return '<tr class="empty-row"><td colspan="5">' + escapeXml(text) + '</td></tr>';
+      return '<tr class="empty-row"><td colspan="' + colCount + '">' + escapeXml(text) + '</td></tr>';
+    }
+    // The lookup is labelled "Quarry | Product", so show only the part after
+    // the pipe — the quarry is already fixed by the selector above.
+    function bareProductNames(r){
+      return r.productNames
+        .map(n => n.indexOf("|") !== -1 ? n.slice(n.lastIndexOf("|") + 1).trim() : n.trim())
+        .filter(Boolean);
     }
 
     if (addlTestsStatus === "loading"){ tbody.innerHTML = emptyRow("Loading…"); return; }
@@ -2541,13 +2574,22 @@
       }
       tr.appendChild(tdDate);
 
+      if (showProduct){
+        const tdProd = document.createElement("td");
+        tdProd.className = "left product-cell";
+        const names = bareProductNames(r);
+        tdProd.textContent = names.length ? names.join(", ") : "All products";
+        tdProd.title = tdProd.textContent;
+        tr.appendChild(tdProd);
+      }
+
       const tdTester = document.createElement("td");
       tdTester.className = "left tester-cell";
       tdTester.textContent = r.tester || "—";
       tr.appendChild(tdTester);
 
       const tdTests = document.createElement("td");
-      tdTests.className = "wrap-cell";
+      tdTests.className = "wrap-cell tests-cell";
       tdTests.textContent = r.tests || "—";
       tr.appendChild(tdTests);
 
@@ -2601,13 +2643,17 @@
       tdDate.className = "left";
       tdDate.textContent = fmtDate(d.date);
       tr.appendChild(tdDate);
+      let rowOut = false;
       sieves.forEach(s => {
         const td = document.createElement("td");
         const v = d.values[s.key];
-        td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
+        const bad = outOfSpec(v, specs ? specs[s.key] : null);
+        if (bad) rowOut = true;
+        td.className = "center" + (bad ? " spec-out" : "");
         td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
         tr.appendChild(td);
       });
+      if (rowOut) tr.classList.add("oos-row");
       tbody.appendChild(tr);
     });
 
@@ -2617,13 +2663,19 @@
     tdLabel.className = "left";
     tdLabel.textContent = "Average";
     trAvg.appendChild(tdLabel);
+    let avgOut = false;
     sieves.forEach(s => {
       const td = document.createElement("td");
       const v = stats.avg[s.key];
-      td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
+      const bad = outOfSpec(v, specs ? specs[s.key] : null);
+      if (bad) avgOut = true;
+      td.className = "center" + (bad ? " spec-out" : "");
       td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
       trAvg.appendChild(td);
     });
+    // Grey with a black rule normally; red ground and red rule only when one of
+    // the averages is itself out of spec.
+    if (avgOut) trAvg.classList.add("oos-row");
     tbody.appendChild(trAvg);
 
     // Only when the sieves weren't all measured the same number of times —
