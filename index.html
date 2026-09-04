@@ -41,7 +41,7 @@
     min-height:100vh;
   }
   .app{
-    max-width:1680px;
+    max-width:1820px;
     margin:0 auto;
     padding:16px 20px 40px;
   }
@@ -315,7 +315,7 @@
   /* ---------- main content layout: test history left, chart+summary stacked right ---------- */
   .main-grid{
     display:grid;
-    grid-template-columns:1.3fr 0.85fr;
+    grid-template-columns:1.25fr 0.95fr;
     gap:14px;
     margin-bottom:14px;
     align-items:stretch;
@@ -353,6 +353,28 @@
   #addlTestsTable th.file-cell{text-align:center;width:62px;}
   #addlTestsTable td.date-cell,
   #addlTestsTable th.date-cell{width:104px;}
+  /* Informational rows: not for customer distribution. Grey ground plus a blue
+     chip, because shade alone is easy to miss and vanishes in a greyscale
+     screenshot. */
+  #addlTestsTable tbody tr.info-row{background:#e4e7e8;}
+  #addlTestsTable tbody tr.info-row:hover{background:#dde1e2;}
+  .info-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;
+    letter-spacing:0.06em;
+    color:var(--slate);background:#fff;
+    border:1px solid var(--slate);border-radius:2px;
+    padding:0 4px;vertical-align:1px;
+  }
+  /* Spec band printed above each sieve label in Test History. Kept inside the
+     same <th> rather than as a second header row — one sticky row keeps
+     working, two would need a hand-tuned top offset. */
+  .spec-hdr{
+    display:block;
+    font-size:8.5px;font-weight:400;letter-spacing:0.02em;
+    color:var(--ink-faint);text-transform:none;
+    min-height:11px;line-height:11px;
+  }
   .all-tag{
     display:inline-block;
     font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;
@@ -397,7 +419,7 @@
   }
   #testPickerPanel .table-scroll{max-height:520px;}
   #addlTestsPanel .table-scroll{max-height:300px;}
-  #summaryPanel .table-scroll{max-height:280px;}
+  #summaryPanel .table-scroll{max-height:380px;}
   table{border-collapse:collapse;width:auto;font-size:10.5px;}
   thead th{
     position:sticky;top:0;z-index:3;
@@ -412,6 +434,9 @@
     padding:4px 5px;
     border-bottom:1px solid var(--line-strong);
     white-space:nowrap;
+    /* Sieve headers now carry a spec line above the label, making them taller
+       than Date/Type/Notes. Bottom alignment keeps every label on one line. */
+    vertical-align:bottom;
   }
   thead th.left, tbody td.left{text-align:left;}
   thead th.center, tbody td.center{text-align:center;width:44px;min-width:44px;}
@@ -428,7 +453,15 @@
     background:#f2e7e5;
     font-weight:600;
   }
-  tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--rust-dark);}
+  /* Black, not rust. The whole row used to be red, which left no contrast for
+     a real out-of-spec value — now red means exactly one thing. */
+  tbody tr.avg-row td{border-top:2px solid var(--rust);color:var(--ink);}
+  /* ...and .spec-out has to out-rank the row rule to show through it. */
+  tbody tr.avg-row td.spec-out{color:var(--rust);}
+  tbody tr.count-row td{
+    border-bottom:none;padding-top:1px;padding-bottom:3px;
+    font-size:9px;color:var(--ink-faint);
+  }
   tbody tr.footnote-row td{
     border-bottom:none;padding-top:3px;padding-bottom:2px;
     font-family:'IBM Plex Sans',sans-serif;font-style:normal;
@@ -676,6 +709,12 @@
         </span>
         <span class="status-opts">
           <span class="opt-group">
+            <span class="opt-label">Sieves:</span>
+            <label class="opt"><input type="checkbox" id="toggleAllSieves"
+                   title="Standard shows only the sieves on this product's spec row. All tested shows every sieve that actually has data in the range — legacy products with no spec row, and one-off extra sieves or washes."> <span>Show all tested</span></label>
+            <span class="opt-label" id="sieveModeNote" style="text-transform:none;letter-spacing:0;"></span>
+          </span>
+          <span class="opt-group">
             <span class="opt-label">Data:</span>
             <label class="opt"><input type="checkbox" id="toggleSelectedDaysOnly"> <span>Use selected days only</span></label>
           </span>
@@ -702,7 +741,11 @@
         </div>
 
         <div class="table-panel" id="addlTestsPanel">
-          <h2 class="panel-title">Additional Tests</h2>
+          <div class="panel-head">
+            <h2 class="panel-title">Additional Tests</h2>
+            <label class="opt"><input type="checkbox" id="toggleInformational"
+                   title="Informational tests are recorded here for reference but are not intended to go out to customers."> <span>Show Informational Tests</span></label>
+          </div>
           <div class="table-scroll">
             <table id="addlTestsTable">
               <thead><tr></tr></thead>
@@ -1012,6 +1055,8 @@
   const ADDL_COL_TESTS       = "Tests";               // Multiple lines of text (plain text)
   const ADDL_COL_SUMMARY     = "Summary";             // Multiple lines of text (plain text)
   const ADDL_COL_PLACEHOLDER = "IsPlaceholderFile";   // Yes/No — Yes hides the file link
+  const ADDL_COL_INFORMATIONAL = "Informational";     // Yes/No — Yes hides the row unless the user opts in
+
   const ADDL_COL_QUARRY      = "Quarry";              // Choice — blank means "every quarry"
   const ADDL_COL_PRODUCT     = "Product";             // Lookup -> Gradation_Products (allow multiple)
   // Graph exposes a lookup column's target ids under "<internal name>LookupId" — an array when
@@ -1175,6 +1220,11 @@
   let displayEnd = null;           // Date
   let showSpec = false;
   let showMinMax = false;
+  // false = only the sieves on the product's spec row; true = every sieve with
+  // data in the range. Legacy products with no spec row fall back to true on
+  // their own, whatever this is set to.
+  let showAllSieves = false;
+  let showInformationalTests = false;
   let chartSelectedDaysOnly = false;
   let lastRenderState = null;
   let includedTestIds = new Set(); // _itemId of checked "Include" rows
@@ -1202,11 +1252,14 @@
     const panel = document.querySelector(".controls-row");
     if (panel) panel.classList.toggle("not-ready", !ready);
     ["quarrySelect","productSelect","startDate","endDate","reportNameInput",
-     "refreshDataBtn","toggleSpec","toggleMinMax","toggleSelectedDaysOnly"].forEach(id => {
+     "refreshDataBtn","toggleSpec","toggleMinMax","toggleSelectedDaysOnly",
+     "toggleAllSieves","toggleInformational"].forEach(id => {
       const el = $(id);
       if (el) el.disabled = !ready;
     });
-    if (!ready) $("statusText").textContent = "Loading from SharePoint\u2026";
+    // Deliberately blank, not a second "Loading..." message: #loadingText sits
+    // right beside this in the same .cached-row and already says it.
+    if (!ready) $("statusText").textContent = "";
   }
 
   /* ================================================================
@@ -1215,7 +1268,10 @@
   function dayNum(d){ return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
   function fromDayNum(n){ const d = new Date(n * 86400000); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
   function addMonths(d, n){ const r = new Date(d); r.setMonth(r.getMonth() + n); return r; }
-  function toInputDate(d){ return d.toISOString().slice(0,10); }
+  // Local, not UTC. toISOString() formats in UTC, so west of Greenwich this
+  // stamped tomorrow's date into the date pickers late in the day. Every other
+  // date path here already avoids exactly that (see dayNumFromISODateUTC).
+  function toInputDate(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()); }
   function fromInputDate(s){ const [y,m,dd] = s.split("-").map(Number); return new Date(y, m-1, dd); }
   function isoStartOfDay(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) + "T00:00:00Z"; }
   function isoEndOfDay(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) + "T23:59:59Z"; }
@@ -1447,6 +1503,7 @@
             tests: stripHtml(f[ADDL_COL_TESTS]),
             summary: stripHtml(f[ADDL_COL_SUMMARY]),
             isPlaceholder: isPlaceholder,
+            isInformational: (function(v){ return v === true || v === 1 || v === "1" || v === "Yes"; })(f[ADDL_COL_INFORMATIONAL]),
             quarry: stripHtml(f[ADDL_COL_QUARRY]),
             productIds: toArray(f[ADDL_COL_PRODUCT_LOOKUP]).map(String),
             productNames: lookupDisplayNames(f[ADDL_COL_PRODUCT])
@@ -1500,13 +1557,21 @@
     return false;
   }
 
-  function additionalTestsInRange(start, end){
-    const s = dayNum(start), e = dayNum(end);
+  // Everything cached for this quarry/product, newest first — NOT limited to
+  // the report's date range. An older soundness report or LA abrasion result is
+  // still the current word on that product, so hiding it because the user is
+  // looking at last week made the panel misleading.
+  // Rows with no TestDate sort to the bottom rather than disappearing.
+  function additionalTestsVisible(){
     return additionalTests
-      .filter(r => r.day !== null && r.day >= s && r.day <= e)
+      .filter(r => showInformationalTests || !r.isInformational)
       .filter(addlRowMatchesQuarry)
       .filter(addlRowMatchesProduct)
-      .sort((a,b) => a.day - b.day || a.name.localeCompare(b.name));
+      .sort((a,b) => {
+        const ad = (a.day === null || a.day === undefined) ? -Infinity : a.day;
+        const bd = (b.day === null || b.day === undefined) ? -Infinity : b.day;
+        return bd - ad || a.name.localeCompare(b.name);
+      });
   }
 
   /* ================================================================
@@ -1903,6 +1968,8 @@
     $("toggleSpec").addEventListener("change", e => { showSpec = e.target.checked; render(); });
     $("toggleMinMax").addEventListener("change", e => { showMinMax = e.target.checked; render(); });
     $("toggleSelectedDaysOnly").addEventListener("change", e => { chartSelectedDaysOnly = e.target.checked; render(); });
+    $("toggleAllSieves").addEventListener("change", e => { showAllSieves = e.target.checked; render(); });
+    $("toggleInformational").addEventListener("change", e => { showInformationalTests = e.target.checked; renderAdditionalTests(); });
 
     $("refreshDataBtn").addEventListener("click", refreshAllData);
 
@@ -2007,28 +2074,68 @@
     });
   }
 
+  // n is how many day-values actually fed each sieve's average. In "all tested"
+  // mode a sieve may only appear on a couple of tests in the range, and a
+  // two-day average printed identically to a forty-day one is misleading.
   function computeStats(dayAverages, sieves){
-    const avg = {}, min = {}, max = {};
+    const avg = {}, min = {}, max = {}, n = {};
     sieves.forEach(s => {
       const vals = dayAverages.map(d => d.values[s.key]).filter(v => v !== null && v !== undefined);
+      n[s.key] = vals.length;
       if (!vals.length){ avg[s.key]=null; min[s.key]=null; max[s.key]=null; return; }
       avg[s.key] = vals.reduce((a,b)=>a+b,0)/vals.length;
       min[s.key] = Math.min.apply(null, vals);
       max[s.key] = Math.max.apply(null, vals);
     });
-    return {avg, min, max};
+    return {avg, min, max, n};
+  }
+  // True when the sieves in play weren't all measured the same number of times.
+  function countsVary(stats, sieves){
+    const c = sieves.map(s => (stats.n && stats.n[s.key] !== undefined) ? stats.n[s.key] : null)
+                    .filter(v => v !== null);
+    return c.length > 1 && new Set(c).size > 1;
   }
 
+  // Mirrors the entry app's parseSpecCell(). The five forms a Gradation_Products
+  // sieve cell can hold:
+  //   "45-90"  band        "<12"  max only     ">30"  min only
+  //   "100"    exact       "*"    tested, no band     (blank) not used
+  //
+  // The one-sided forms used to fall through to parseFloat("<12") -> NaN, so
+  // every "<" and ">" spec in the product list was silently invisible here: no
+  // spec line on the chart, no band in Time Series, no out-of-spec detection.
+  // Only the entry app understood them.
   function parseSpec(raw){
     if (raw === undefined || raw === null || String(raw).trim() === "") return null;
     const str = String(raw).trim();
     if (str === "*") return {low:null, high:null, wildcard:true};
-    if (str.indexOf("-") !== -1){
-      const parts = str.split("-").map(s => parseFloat(s.trim()));
-      return {low:parts[0], high:parts[1]};
-    }
+    let m;
+    if ((m = str.match(/^<\s*=?\s*(\d+(?:\.\d+)?)$/))) return {low:null, high:parseFloat(m[1])};
+    if ((m = str.match(/^>\s*=?\s*(\d+(?:\.\d+)?)$/))) return {low:parseFloat(m[1]), high:null};
+    if ((m = str.match(/^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$/))) return {low:parseFloat(m[1]), high:parseFloat(m[2])};
     const v = parseFloat(str);
+    if (isNaN(v)) return null;
     return {low:v, high:v};
+  }
+
+  // A value sits outside its band. Wildcard ("*") and blank specs never flag.
+  function outOfSpec(val, spec){
+    if (val === null || val === undefined || val === "") return false;
+    if (!spec || spec.wildcard) return false;
+    const n = Number(val);
+    if (isNaN(n)) return false;
+    if (spec.low  !== null && spec.low  !== undefined && !isNaN(spec.low)  && n < spec.low  - 1e-9) return true;
+    if (spec.high !== null && spec.high !== undefined && !isNaN(spec.high) && n > spec.high + 1e-9) return true;
+    return false;
+  }
+  // Compact spec band for the line above a sieve label: "70-100", "100", "<=10", ">=35".
+  function specHeaderText(spec){
+    if (!spec || spec.wildcard) return "";
+    const lo = (spec.low  === null || spec.low  === undefined || isNaN(spec.low))  ? null : spec.low;
+    const hi = (spec.high === null || spec.high === undefined || isNaN(spec.high)) ? null : spec.high;
+    if (lo === null && hi === null) return "";
+    if (lo !== null && hi !== null) return lo === hi ? String(lo) : lo + "-" + hi;
+    return hi !== null ? "\u2264" + hi : "\u2265" + lo;
   }
 
   function resetIncludedToLastN(){
@@ -2044,7 +2151,18 @@
     const productFields = getCurrentProductFields();
     const rangeTestsRecentFirst = testsInDateRange(displayStart, displayEnd).sort((a,b) => sortKey(b).localeCompare(sortKey(a)));
     const rangeTests = rangeTestsRecentFirst.slice().sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
-    const sieves = productMode === "custom" ? getSievesFromTests(rangeTests) : getSievesForProduct(productFields);
+    // Standard = the sieves on this product's spec row. All tested = every
+    // sieve with real data in the range, which is also the automatic fallback
+    // for custom products and for legacy products with no spec row at all.
+    const specSieves = productMode === "custom" ? [] : getSievesForProduct(productFields);
+    const forcedAll  = productMode === "custom" || !specSieves.length;
+    const usingAll   = showAllSieves || forcedAll;
+    const sieves     = usingAll ? getSievesFromTests(rangeTests) : specSieves;
+    {
+      const note = $("sieveModeNote");
+      if (note) note.textContent =
+        (forcedAll && productMode !== "custom") ? "no spec on file \u2014 showing all tested" : "";
+    }
     // Test History shows every test in the date range. There used to be a
     // "show last N" cap here, but a hidden test the user never scrolled to is
     // worse than a long list.
@@ -2066,9 +2184,9 @@
       (chartSelectedDaysOnly ? "FOR SELECTED TEST DAYS" : (fmtDate(displayStart) + " – " + fmtDate(displayEnd)));
 
     renderChart(sieves, activeStats, specs);
-    renderTestPicker(shownTests, sieves);
+    renderTestPicker(shownTests, sieves, specs);
     renderAdditionalTests();
-    renderSummary(sieves, includedDayAverages, activeStats, chartSelectedDaysOnly);
+    renderSummary(sieves, includedDayAverages, activeStats, chartSelectedDaysOnly, specs);
 
     lastRenderState = {
       productFields: productFields,
@@ -2078,7 +2196,8 @@
       includedDayAverages: includedDayAverages,
       chartSelectedDaysOnly: chartSelectedDaysOnly,
       showSpec: showSpec,
-      showMinMax: showMinMax
+      showMinMax: showMinMax,
+      countsVary: countsVary(activeStats, sieves)
     };
   }
 
@@ -2239,7 +2358,7 @@
   /* ================================================================
      TEST PICKER TABLE
      ================================================================ */
-  function renderTestPicker(tests, sieves){
+  function renderTestPicker(tests, sieves, specs){
     const table = $("testPickerTable");
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
@@ -2258,7 +2377,9 @@
     thead.innerHTML =
       '<th class="left"><input type="checkbox" id="inclAllCheckbox" title="Select or clear every test below"></th>' +
       '<th class="left">Date</th><th class="left">Type</th>' +
-      sieves.map(s => '<th class="center">' + escapeXml(s.label) + '</th>').join("") +
+      sieves.map(s => '<th class="center"><span class="spec-hdr">' +
+        escapeXml(specHeaderText(specs ? specs[s.key] : null)) + '</span>' +
+        escapeXml(s.label) + '</th>').join("") +
       (showNotes       ? '<th class="left">Notes</th>'            : "") +
       (showCoarseMoist ? '<th class="center">Coarse Moist.</th>'  : "") +
       (showFineMoist   ? '<th class="center">Fine Moist.</th>'    : "");
@@ -2308,8 +2429,8 @@
 
       sieves.forEach(s => {
         const td = document.createElement("td");
-        td.className = "center";
         const v = t[s.key + "_Pct"];
+        td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
         td.textContent = (v === undefined || v === null || v === "") ? "—" : Number(v).toFixed(1);
         tr.appendChild(td);
       });
@@ -2368,15 +2489,34 @@
       return;
     }
 
-    const rows = additionalTestsInRange(displayStart, displayEnd);
-    if (!rows.length){ tbody.innerHTML = emptyRow("No additional tests in this range."); return; }
+    const rows = additionalTestsVisible();
+    if (!rows.length){
+      const hiddenInfo = additionalTests.filter(r => r.isInformational)
+        .filter(addlRowMatchesQuarry).filter(addlRowMatchesProduct).length;
+      tbody.innerHTML = emptyRow(hiddenInfo && !showInformationalTests
+        ? hiddenInfo + " informational test" + (hiddenInfo === 1 ? "" : "s") + " hidden \u2014 tick \u201cShow Informational Tests\u201d to see them."
+        : "No additional tests for this product.");
+      return;
+    }
 
     rows.forEach(r => {
       const tr = document.createElement("tr");
+      if (r.isInformational){
+        tr.className = "info-row";
+        tr.title = "Informational \u2014 not intended to be sent to customers.";
+      }
 
       const tdDate = document.createElement("td");
       tdDate.className = "left date-cell";
       tdDate.textContent = r.rawDate ? fmtDate(r.rawDate) : "—";
+      if (r.isInformational){
+        const itag = document.createElement("span");
+        itag.className = "info-tag";
+        itag.textContent = "INFO";
+        itag.title = "Informational \u2014 not intended to be sent to customers.";
+        tdDate.appendChild(document.createTextNode(" "));
+        tdDate.appendChild(itag);
+      }
       if (!r.productIds.length && !r.productNames.length){
         const tag = document.createElement("span");
         tag.className = "all-tag";
@@ -2431,7 +2571,7 @@
   /* ================================================================
      SUMMARY TABLE — selected (included) tests + full-range average row
      ================================================================ */
-  function renderSummary(sieves, includedDayAverages, stats, selectedDaysOnly){
+  function renderSummary(sieves, includedDayAverages, stats, selectedDaysOnly, specs){
     const table = $("summaryTable");
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
@@ -2451,8 +2591,8 @@
       tr.appendChild(tdDate);
       sieves.forEach(s => {
         const td = document.createElement("td");
-        td.className = "center";
         const v = d.values[s.key];
+        td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
         td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
         tr.appendChild(td);
       });
@@ -2467,12 +2607,30 @@
     trAvg.appendChild(tdLabel);
     sieves.forEach(s => {
       const td = document.createElement("td");
-      td.className = "center";
       const v = stats.avg[s.key];
+      td.className = "center" + (outOfSpec(v, specs ? specs[s.key] : null) ? " spec-out" : "");
       td.textContent = (v === null || v === undefined) ? "—" : v.toFixed(1);
       trAvg.appendChild(td);
     });
     tbody.appendChild(trAvg);
+
+    // Only when the sieves weren't all measured the same number of times —
+    // otherwise every count is identical and the row is noise.
+    if (countsVary(stats, sieves)){
+      const trN = document.createElement("tr");
+      trN.className = "count-row";
+      const tdN = document.createElement("td");
+      tdN.className = "left";
+      tdN.textContent = "tests averaged";
+      trN.appendChild(tdN);
+      sieves.forEach(s => {
+        const td = document.createElement("td");
+        td.className = "center";
+        td.textContent = (stats.n && stats.n[s.key] !== undefined) ? stats.n[s.key] : "—";
+        trN.appendChild(td);
+      });
+      tbody.appendChild(trN);
+    }
 
     const trNote = document.createElement("tr");
     trNote.className = "footnote-row";
@@ -2726,15 +2884,20 @@
     const dateColW = 0.9 * 0.8;
     const sieveColW = sieves.length ? Math.min(0.55, (contentW - 0.08 - dateColW) / sieves.length) * 0.8 : 0.55 * 0.8;
     const rowH = 0.17;
-    const tableRight = contentLeft + dateColW + sieves.length*sieveColW;
+    // Centre the table in the content box rather than pinning it left — the
+    // column widths are scaled down by 0.8, so left-aligning left all the
+    // slack on one side.
+    const tableW = dateColW + sieves.length*sieveColW;
+    const tableLeft = margin + (contentW - tableW) / 2;
+    const tableRight = tableLeft + tableW;
 
     function drawTableHeader(){
       doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(69,75,78);
-      doc.text("Sample Date", contentLeft, y);
-      sieves.forEach(function(s,i){ doc.text(s.label, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"}); });
+      doc.text("Sample Date", tableLeft, y);
+      sieves.forEach(function(s,i){ doc.text(s.label, tableLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"}); });
       y += 0.03;
       doc.setDrawColor(160,160,160); doc.setLineWidth(0.007);
-      doc.line(contentLeft, y, tableRight, y);
+      doc.line(tableLeft, y, tableRight, y);
       y += 0.13;
     }
     drawTableHeader();
@@ -2747,11 +2910,11 @@
         drawTableHeader();
       }
       doc.setTextColor(20,20,20);
-      doc.text(fmtDate(d.date), contentLeft, y);
+      doc.text(fmtDate(d.date), tableLeft, y);
       sieves.forEach(function(s,i){
         const v = d.values[s.key];
         const text = (v === null || v === undefined) ? "\u2014" : v.toFixed(1);
-        doc.text(text, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
+        doc.text(text, tableLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
       });
       y += rowH;
     });
@@ -2762,14 +2925,14 @@
       drawTableHeader();
     }
     doc.setDrawColor(0,0,0); doc.setLineWidth(0.014);
-    doc.line(contentLeft, y-0.11, tableRight, y-0.11);
+    doc.line(tableLeft, y-0.11, tableRight, y-0.11);
     doc.setFont("helvetica","bold"); doc.setFontSize(8);
     doc.setTextColor(0,0,0);
-    doc.text("Average", contentLeft, y);
+    doc.text("Average", tableLeft, y);
     sieves.forEach(function(s,i){
       const v = opts.stats.avg[s.key];
       const text = (v === null || v === undefined) ? "\u2014" : v.toFixed(1);
-      doc.text(text, contentLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
+      doc.text(text, tableLeft+dateColW+i*sieveColW+sieveColW/2, y, {align:"center"});
     });
     y += rowH + 0.16;
     if (!opts.selectedDaysOnly){
@@ -2777,6 +2940,12 @@
       doc.text("Averages are over entire sampling period.", contentLeft, y);
       y += 0.08;
     } else {
+      y += 0.08;
+    }
+    if (opts.countsVary){
+      y += 0.10;
+      doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(90,90,90);
+      doc.text("Not every sieve was run on every test \u2014 column averages cover differing numbers of tests.", contentLeft, y);
       y += 0.08;
     }
     closeSectionBox();
@@ -2990,6 +3159,7 @@
           showSpec: st.showSpec,
           showMinMax: st.showMinMax,
           includedDayAverages: st.includedDayAverages,
+          countsVary: st.countsVary,
           comments: $("reportComments").value,
           generatedBy: generatedBy,
           generatedDate: generatedDate,
@@ -4187,7 +4357,9 @@
       const m = TS_METRICS[b.s.metric], dec = m.dec, sp = tsSeriesSpec(b.s);
       let specTxt = "\u2014", inSpec = "\u2014", cpk = "\u2014", cpkCls = "";
       if (sp){
-        specTxt = (sp.lo === null ? "*" : sp.lo) + "\u2013" + (sp.hi === null ? "*" : sp.hi);
+        specTxt = (sp.lo !== null && sp.lo === sp.hi)
+          ? String(sp.lo)
+          : (sp.lo === null ? "*" : sp.lo) + "\u2013" + (sp.hi === null ? "*" : sp.hi);
         const ok = vs.filter(v => (sp.lo === null || v >= sp.lo - 1e-9) && (sp.hi === null || v <= sp.hi + 1e-9)).length;
         inSpec = (ok/n*100).toFixed(1) + "%";
         if (sp.lo !== null && sp.hi !== null && sp.hi > sp.lo && sd > 0){
